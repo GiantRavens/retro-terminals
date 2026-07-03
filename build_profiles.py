@@ -769,12 +769,14 @@ def _write(dest_dir, filename, profiles):
 
 
 def main():
-    # iTerm2 "Title Components" bitmask: 4 = Profile Name. Pinned by default so
-    # the tab/title shows the machine name; the shell (tmux/starship/banner) can
-    # rename the *session* but not the *profile*, so it stays put. --no-titles off.
+    # iTerm2 "Title Components" bitmask: 32 (1<<5) = Profile Name (verified against
+    # the iTerm2 Python API TitleComponents enum). Pinned by default so the
+    # tab/title shows the machine name; the shell (tmux/starship/banner) can rename
+    # the *session* but not the *profile*, so it stays put. NB 4 = Working Directory
+    # (iTerm2's own default) — that's why an earlier 4 did nothing. --no-titles off.
     if "--no-titles" not in sys.argv:
         for p in PROFILES + FICTION + AESTHETIC + CORP:
-            p["Title Components"] = 4
+            p["Title Components"] = 32
     if "--stdout" in sys.argv:
         print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC + CORP}, indent=2))
         return
