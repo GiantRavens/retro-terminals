@@ -289,6 +289,34 @@ color, re-run `--studio`, reload the page. The CRT dials tune the *shared*
 `crt.glsl` — one shader for all tubes — so publishing it updates every tube;
 `screen padding` is per-profile and rewrites that profile's `window-padding`.
 
+## Status lines that follow the theme
+
+ANSI palette slots **0–15 follow the active profile; the 256-cube (16–255) and
+`#hex` are fixed**. So anything drawn with a slot 0–15 (or an ANSI *name* like
+`green`) re-colors automatically when you switch profiles — the same trick that
+makes the whole palette swap live. tmux can't know *which* named profile is
+active, but it doesn't need to: build the bar from slots and it wears whatever
+the window is using.
+
+- **Starship already follows.** `starship.toml` styles with `green` / `yellow`
+  / `cyan` / `purple` — ANSI names → slots 2/3/6/5. Open any profile and the
+  prompt is already wearing its colors. (Monochrome tubes render a monochrome
+  prompt — authentic.)
+- **tmux doesn't, by default.** The stock airline footer pins `colour236` /
+  `colour31` / `colour214` (all ≥ 16, fixed), so it looks identical everywhere.
+  `integration/tmux-retro-status.conf` redraws the whole tmux surface — status
+  bar, window tabs, pane borders, copy mode and clock — from slots 0–15, so it
+  tracks the profile. Enable by sourcing it *after* your own status block:
+
+  ```bash
+  source-file ~/Desktop/notebook/code/retro-terminals/integration/tmux-retro-status.conf
+  ```
+
+  On a multi-machine setup, put that line in a non-synced machine-local include
+  (many configs already source `~/.tmux.conf.local` at the end), then
+  `tmux source-file ~/.tmux.conf`. Delete the line to revert. In Ghostty the
+  same file works — the CRT shader tints the footer along with everything else.
+
 ## Fonts & provenance
 
 Installed to `~/Library/Fonts` (all free):
