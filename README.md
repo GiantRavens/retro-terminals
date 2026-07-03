@@ -1,11 +1,20 @@
-# Retro Terminals — iTerm2 profiles
+# Retro Terminals — iTerm2 profiles (and a Ghostty CRT port)
 
-**39 iTerm2 profiles** in four groups — real historic machines (`retro`),
+**39 terminal palettes** in four groups — real historic machines (`retro`),
 fictional computers (`sci-fi`), aesthetic movements (`aesthetic`), and the
-Alien/Blade Runner megacorps (`corp`) — generated from a declarative palette spec
-and installed as iTerm2 **Dynamic Profiles**. Each group is its own JSON file in
-the DynamicProfiles folder, so you can enable or delete a whole pack
-independently. Filter by the tag in the profile switcher.
+Alien/Blade Runner megacorps (`corp`) — generated from one declarative palette
+spec. That single spec compiles to **two backends**:
+
+- **iTerm2** (`build_profiles.py`) — the daily driver. 39 Dynamic Profiles,
+  boot banners, matching prompts, and a static scanline bezel. Unlimited
+  scrollback and session logging. The CRT look is *faked* (blur + bright bold).
+- **Ghostty** (`build_ghostty.py`) — the same 39 palettes as Ghostty themes and
+  configs, plus a **real GPU CRT shader** (curvature, scanlines, chromatic
+  aberration, bloom) on the 17 "tube" machines. The effect iTerm2 can't do.
+
+The palettes live in `build_profiles.py`; Ghostty's builder **imports** that
+spec rather than copying it, so the two backends never drift. Edit a hex value
+once, rebuild both.
 
 ### ▶ Live demo
 
@@ -200,6 +209,55 @@ overlay itself with ImageMagick if you want it heavier/finer — the two `magick
 lines are in the project history. This nudges real iTerm toward the browser
 playground's look; it's texture, not the full curved-glass shader.
 
+## Ghostty — the real CRT shader
+
+iTerm2 has no shader pipeline, so its "CRT" is the bezel PNG plus blur. Ghostty
+renders on the GPU and takes a **custom GLSL shader**, so the same palettes get
+actual curved glass. `build_ghostty.py` imports the `PROFILES` spec from
+`build_profiles.py` and compiles it into `~/.config/ghostty/`:
+
+```bash
+python3 build_ghostty.py            # write into ~/.config/ghostty
+python3 build_ghostty.py --stdout   # preview one config, write nothing
+python3 build_ghostty.py --dest DIR # write somewhere else
+```
+
+It emits:
+
+- `themes/<slug>` — colors only. Drop into an existing setup with
+  `theme = <slug>` in your config, or browse with `ghostty +list-themes`.
+- `retro/<slug>` — a fully self-contained config (colors + font + window +
+  shader). Launch a styled window:
+  `ghostty --config-file=~/.config/ghostty/retro/<slug>`.
+- `shaders/crt.glsl` — the CRT fragment shader (`shaders/crt.glsl` in this
+  repo), attached to the same 17 "tube" machines that got the iTerm2 bezel.
+- `retro/aliases.sh` — a `ghostty-<name>` launcher per profile (macOS
+  `open -na Ghostty …`). `source` it from your `~/.zshrc`.
+
+```bash
+brew install --cask ghostty        # if you don't have it yet
+source ~/.config/ghostty/retro/aliases.sh
+ghostty-mu-th-ur-6000-crt          # MOTHER, on curved glass
+```
+
+Tweak the shader constants (`CURVATURE`, `SCANLINE`, `BLOOM`, `FLICKER`, …) at
+the top of `shaders/crt.glsl` — Ghostty hot-reloads shaders when the window
+regains focus.
+
+**Mapping caveats** (where the two backends can't be identical):
+
+- Transparency is inverted (iTerm2 `0` = opaque; Ghostty `background-opacity 1`
+  = opaque) — the builder handles it.
+- iTerm2's blur *radius* has no Ghostty analog → `background-blur = true`.
+- Bitmap/pixel fonts render soft: Ghostty has no "anti-aliasing off" toggle, so
+  C64 / Terminus / Glass TTY / 3270 / Departure lose the crisp-pixel look.
+- Boot banners, matching prompts, Minimum Contrast, Bright-Bold, Link Color:
+  no clean Ghostty equivalent → dropped. (Banners belong in your shell rc.)
+- `bold-color` needs Ghostty ≥ 1.1; older builds log "unknown field" and skip it.
+
+iTerm2 stays the recommended daily driver (scrollback + logging). Ghostty is the
+"fun" terminal you open when you want the real tube.
+
 ## Fonts & provenance
 
 Installed to `~/Library/Fonts` (all free):
@@ -217,6 +275,10 @@ Installed to `~/Library/Fonts` (all free):
 
 iTerm2 has no CRT-shader support, so the green/amber tubes approximate the glow
 with transparency + Gaussian blur + a brighter bold color and a touch of extra
-line spacing. It reads as "phosphor," not as a curved-glass emulator. If you ever
-want the full curvature/scanline treatment, that lives in dedicated emulators
-(cool-retro-term) — but these stay real iTerm2 sessions you can actually work in.
+line spacing. It reads as "phosphor," not as a curved-glass emulator.
+
+For the full curvature/scanline treatment you have two paths off iTerm2: the
+**Ghostty port** in this repo (`build_ghostty.py`, real GLSL shader, keeps your
+exact palettes) or a dedicated emulator like **cool-retro-term** (the whole app
+*is* the CRT). The iTerm2 profiles stay real sessions you can actually work in;
+Ghostty is where the tube gets genuinely curved.
