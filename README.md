@@ -211,6 +211,9 @@ playground's look; it's texture, not the full curved-glass shader.
 
 ## Ghostty — the real CRT shader
 
+> **Runbook:** [`GHOSTTY.md`](GHOSTTY.md) — build, launch, tune, publish, and the
+> tmux opt-in, command-first in one place.
+
 iTerm2 has no shader pipeline, so its "CRT" is the bezel PNG plus blur. Ghostty
 renders on the GPU and takes a **custom GLSL shader**, so the same palettes get
 actual curved glass. `build_ghostty.py` imports the `PROFILES` spec from
