@@ -95,12 +95,17 @@ All three notional packs get boot banners too, and matching `retro` prompts
 
 ## Visual gallery & CRT playground
 
-- **Gallery** — every profile rendered in its real font: <https://claude.ai/code/artifact/04f2755b-d0e1-4b63-ab7e-4fd1812a5460>
+Hosted on GitHub Pages (public, shareable):
+
+- **Gallery** — every profile rendered in its real font:
+  <https://giantravens.github.io/retro-terminals/>
 - **CRT playground** — a WebGL curved-glass shader (the effect iTerm can't do
-  natively): <https://claude.ai/code/artifact/754420e0-22d9-4597-aca5-1f337b08e180>
+  natively): <https://giantravens.github.io/retro-terminals/crt-playground.html>
 
 The gallery links to the playground and explains how the five parts (profiles,
-banners, prompts, bezel, playground) fit together.
+banners, prompts, bezel, playground) fit together. It renders each card in that
+profile's real font — install them with `./fonts/install-fonts.sh` for full
+fidelity; without them it falls back to your default monospace.
 
 ## How it works
 

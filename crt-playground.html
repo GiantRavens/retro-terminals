@@ -1,4 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Phosphor·1 — CRT playground</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>">
 <style>
   :root{
     --case-hi:#44474b; --case-lo:#212327; --bezel:#0a0b0a;
@@ -118,6 +124,8 @@
   @keyframes hum{0%,100%{opacity:1}50%{opacity:.78}}
   @media (prefers-reduced-motion:reduce){.led{animation:none}}
 </style>
+</head>
+<body>
 
 <div class="rig">
   <div class="unit">
@@ -345,3 +353,5 @@ selectPreset(PRESETS[0],presetsEl.firstChild);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawScreen);
 setTimeout(drawScreen,300);
 </script>
+</body>
+</html>

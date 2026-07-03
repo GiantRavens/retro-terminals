@@ -1,5 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Retro Terminals — profile gallery</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
 <style>
+*{margin:0;padding:0}
   :root{
     --ground:#0b0d0b;--panel:#101410;--ink:#c6cdc0;--ink-dim:#727b6f;
     --accent:#39e05c;--amber:#ffb000;--hair:rgba(120,150,120,.16);--gap:20px;
@@ -58,6 +65,8 @@
   @keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
   @media (prefers-reduced-motion:reduce){.cur{animation:none!important}}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
@@ -80,7 +89,7 @@
         <li><b>CRT playground</b> — the browser-only part →</li>
       </ol>
     </div>
-    <a class="btn" href="https://claude.ai/code/artifact/754420e0-22d9-4597-aca5-1f337b08e180" target="_blank" rel="noopener">
+    <a class="btn" href="crt-playground.html" target="_blank" rel="noopener">
       <span class="big">▶ CRT Playground</span>bend text through curved glass</a>
   </div>
   <p class="lede" style="margin-top:12px;font-size:12.5px">The playground does the one thing iTerm can't:
@@ -269,3 +278,5 @@ for(const s of SECTIONS){
   root.appendChild(g);
 }
 </script>
+</body>
+</html>
