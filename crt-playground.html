@@ -1,0 +1,347 @@
+<title>Phosphor·1 — CRT playground</title>
+<style>
+  :root{
+    --case-hi:#44474b; --case-lo:#212327; --bezel:#0a0b0a;
+    --panel:#26282c; --panel-hi:#31343a;
+    --silk:#c0bAA9; --silk-dim:#7f7c72; --hair:#000;
+    --ink:#33ff33;                     /* dynamic: matches the phosphor */
+    --mono:ui-monospace,"SF Mono","Menlo",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(130% 90% at 50% -20%, #1a1c1f, #0a0b0d 70%),
+      #08090a;
+    color:var(--silk);font-family:var(--mono);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:32px 18px;-webkit-font-smoothing:antialiased;
+  }
+  .rig{width:100%;max-width:780px;display:flex;flex-direction:column;gap:18px}
+
+  /* ---- the monitor ---- */
+  .unit{
+    background:linear-gradient(160deg,var(--case-hi),var(--case-lo));
+    border-radius:22px;padding:22px 22px 18px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.10) inset,
+      0 -2px 6px rgba(0,0,0,.5) inset,
+      0 40px 80px -30px #000, 0 8px 22px -12px #000;
+  }
+  .bezel{
+    background:var(--bezel);border-radius:14px;padding:16px;
+    box-shadow:0 0 0 1px #000 inset, 0 10px 30px -8px #000 inset;
+    position:relative;
+  }
+  .bezel::after{ /* faint screen reflection */
+    content:"";position:absolute;inset:16px;border-radius:9px;pointer-events:none;
+    background:linear-gradient(150deg,rgba(255,255,255,.05),transparent 40%);
+    mix-blend-mode:screen;
+  }
+  canvas{display:block;width:100%;aspect-ratio:4/3;border-radius:9px;background:#000}
+  .noweb{padding:40px;text-align:center;color:var(--silk-dim);font-size:13px}
+
+  /* ---- brand plate + power ---- */
+  .plate{display:flex;align-items:center;gap:14px;margin-top:14px;padding:0 4px}
+  .brand{
+    font-weight:700;letter-spacing:.34em;font-size:13px;color:var(--silk);
+    text-shadow:0 1px 0 rgba(255,255,255,.12),0 -1px 0 #000;
+  }
+  .brand small{display:block;letter-spacing:.22em;font-size:9px;color:var(--silk-dim);font-weight:400;margin-top:3px}
+  .led{
+    width:9px;height:9px;border-radius:50%;background:var(--ink);
+    box-shadow:0 0 8px var(--ink),0 0 2px #fff inset;margin-left:2px;
+    animation:hum 4s ease-in-out infinite;
+  }
+  .presets{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .presets button{
+    font:inherit;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--silk-dim);background:linear-gradient(#31343a,#212327);
+    border:1px solid #000;border-top-color:#3d4046;border-radius:6px;
+    padding:6px 9px;cursor:pointer;transition:.15s;
+  }
+  .presets button:hover{color:var(--silk)}
+  .presets button[aria-pressed="true"]{
+    color:var(--ink);border-color:var(--ink);
+    box-shadow:0 0 10px -2px var(--ink),0 0 0 1px var(--ink) inset;
+  }
+  .presets button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  /* ---- control panel ---- */
+  .panel{
+    background:linear-gradient(180deg,var(--panel-hi),var(--panel));
+    border-radius:16px;padding:18px 20px 20px;
+    box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 40px -26px #000;
+  }
+  .panel h2{
+    margin:0 0 14px;font-size:10px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--silk-dim);font-weight:600;
+  }
+  .knobs{display:grid;gap:16px 22px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .knob label{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--silk);margin-bottom:7px}
+  .knob .val{color:var(--ink);font-variant-numeric:tabular-nums;font-size:11px;letter-spacing:0}
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:3px;
+    background:linear-gradient(90deg,var(--ink) 0 var(--fill,50%),#15171a var(--fill,50%) 100%);
+    outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f2f0ea,#8f8d86 60%,#4a4945);
+    border:1px solid #000;box-shadow:0 0 6px -1px var(--ink),0 2px 3px #000;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;border:1px solid #000;
+    background:radial-gradient(circle at 35% 30%,#f2f0ea,#8f8d86 60%,#4a4945);
+  }
+  input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px var(--ink)}
+
+  details.signal{margin-top:16px;border-top:1px solid #000;padding-top:14px}
+  details.signal summary{
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--silk-dim);
+    cursor:pointer;list-style:none;user-select:none;
+  }
+  details.signal summary::before{content:"▸ ";color:var(--ink)}
+  details.signal[open] summary::before{content:"▾ "}
+  textarea{
+    width:100%;margin-top:12px;min-height:120px;resize:vertical;
+    background:#0c0e0c;color:var(--ink);border:1px solid #000;border-radius:8px;
+    padding:12px;font-family:var(--mono);font-size:13px;line-height:1.5;
+    box-shadow:0 6px 18px -10px #000 inset;
+  }
+  textarea:focus{outline:1px solid var(--ink);outline-offset:1px}
+
+  .foot{text-align:center;color:var(--silk-dim);font-size:11px;letter-spacing:.04em;padding-top:2px}
+  .foot b{color:var(--silk)}
+
+  @keyframes hum{0%,100%{opacity:1}50%{opacity:.78}}
+  @media (prefers-reduced-motion:reduce){.led{animation:none}}
+</style>
+
+<div class="rig">
+  <div class="unit">
+    <div class="bezel">
+      <canvas id="crt" width="720" height="540"></canvas>
+    </div>
+    <div class="plate">
+      <span class="led" id="led"></span>
+      <span class="brand">PHOSPHOR·1<small>CATHODE-RAY DISPLAY</small></span>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Deflection &amp; Beam</h2>
+    <div class="knobs" id="knobs"></div>
+    <details class="signal">
+      <summary>Signal input</summary>
+      <textarea id="text" spellcheck="false"></textarea>
+    </details>
+  </div>
+
+  <p class="foot">Drag the knobs. Pick a tube. This is the <b>curved-glass</b> look a flat LCD can't do —
+    the thing your iTerm2 profiles gesture at but a browser can actually render.</p>
+</div>
+
+<script>
+"use strict";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// ---- offscreen text canvas (rendered in real retro fonts) ----
+const TX = document.createElement("canvas");
+TX.width = 720; TX.height = 540;
+const tctx = TX.getContext("2d");
+
+// ---- presets: bg, ink, font, size, dial settings, sample signal ----
+const PRESETS = [
+ {id:"vt220", label:"VT220 Green", bg:"#000d00", ink:"#33ff33", font:"'Glass TTY VT220',monospace", size:23,
+  P:{curv:.30,scan:.55,mask:.35,bloom:.55,aberr:.35,flicker:.5,bright:1.12,vig:.55},
+  text:`login: skip\nLast login: Tue Jul  3 10:12 on ttyp0\n\n$ uname -srm\nULTRIX 4.5 RISC\n\n$ uptime\n 10:14  up 42 days,  load 0.08\n\n$ _`},
+
+ {id:"amber", label:"Amber P3", bg:"#140a00", ink:"#ffb000", font:"'Glass TTY VT220',monospace", size:23,
+  P:{curv:.30,scan:.5,mask:.32,bloom:.6,aberr:.3,flicker:.45,bright:1.12,vig:.55},
+  text:`WYSE WY-50    AMBER\nREADY\n\n> DIR\nREPORT   TXT    4096\nMEMO     TXT    1024\nBACKUP   TXT   28160\n\n> _`},
+
+ {id:"mda", label:"IBM 5151", bg:"#001000", ink:"#28ff5a", font:"'IBM 3270',monospace", size:21,
+  P:{curv:.16,scan:.42,mask:.5,bloom:.4,aberr:.14,flicker:.35,bright:1.08,vig:.45},
+  text:`C:\\>ver\n\nMS-DOS Version 6.22\n\nC:\\>dir/w\n COMMAND  COM   AUTOEXEC BAT\n CONFIG   SYS   HIMEM    SYS\n\nC:\\>_`},
+
+ {id:"c64", label:"Commodore 64", bg:"#40318d", ink:"#8b7fd4", font:"'C64 Pro Mono',monospace", size:21,
+  P:{curv:.30,scan:.34,mask:.30,bloom:.5,aberr:.32,flicker:.5,bright:1.1,vig:.5},
+  text:`    **** COMMODORE 64 BASIC V2 ****\n\n 64K RAM SYSTEM  38911 BASIC BYTES FREE\n\nREADY.\nLOAD"*",8,1\n\nSEARCHING FOR *\nLOADING\nREADY.\nRUN`},
+
+ {id:"bbc", label:"BBC Teletext", bg:"#000000", ink:"#ffffff", font:"'Bedstead',monospace", size:23,
+  P:{curv:.22,scan:.46,mask:.4,bloom:.45,aberr:.3,flicker:.5,bright:1.08,vig:.5},
+  text:`BBC Computer 32K\n\nAcorn DFS\n\nBASIC\n\n>_`},
+
+ {id:"dead", label:"Dead TV", bg:"#0a0a0a", ink:"#e6e6e6", font:"'Glass TTY VT220',monospace", size:22,
+  P:{curv:.36,scan:.62,mask:.28,bloom:.62,aberr:.6,flicker:.85,bright:1.15,vig:.62},
+  text:`\n        NO SIGNAL\n\n     PLEASE STAND BY\n\n   ████████████████`},
+];
+
+// dial config (order shown on the panel)
+const DIALS = [
+ ["curv","Curvature"],["scan","Scanlines"],["mask","Shadow mask"],["bloom","Phosphor bloom"],
+ ["aberr","Aberration"],["flicker","Flicker"],["bright","Brightness"],["vig","Vignette"],
+];
+const RANGE = {bright:[0.6,1.6], _def:[0,1]};
+
+let P = {...PRESETS[0].P};
+let cur = PRESETS[0];
+
+// ---- draw text to offscreen canvas ----
+function drawScreen(){
+  tctx.fillStyle = cur.bg;
+  tctx.fillRect(0,0,TX.width,TX.height);
+  tctx.fillStyle = cur.ink;
+  tctx.textBaseline = "top";
+  tctx.font = `${cur.size}px ${cur.font}`;
+  const lh = cur.size * 1.35, padx = 26, pady = 24;
+  const lines = document.getElementById("text").value.split("\n");
+  lines.forEach((ln,i)=> tctx.fillText(ln, padx, pady + i*lh));
+  uploadTexture();
+  if (reduce) render(performance.now());
+}
+
+// =====================  WebGL  =====================
+const canvas = document.getElementById("crt");
+const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+let uploadTexture = ()=>{}, render = ()=>{};
+
+if(!gl){
+  canvas.replaceWith(Object.assign(document.createElement("div"),
+    {className:"noweb",textContent:"WebGL unavailable — this tube needs a GPU context."}));
+}else{
+  const VS = `attribute vec2 a;varying vec2 v;void main(){v=a*0.5+0.5;gl_Position=vec4(a,0.,1.);}`;
+  const FS = `
+  precision highp float;
+  uniform sampler2D tex; uniform vec2 res; uniform float time;
+  uniform float uCurv,uScan,uMask,uBloom,uAberr,uFlicker,uBright,uVig;
+  varying vec2 v;
+  vec2 curve(vec2 uv){ uv=uv*2.0-1.0; vec2 o=uv.yx*uv.yx; uv+=uv*o*uCurv; return uv*0.5+0.5; }
+  void main(){
+    vec2 uv = curve(v);
+    if(uv.x<0.0||uv.x>1.0||uv.y<0.0||uv.y>1.0){ gl_FragColor=vec4(0.0,0.0,0.0,1.0); return; }
+    float a = uAberr*0.005;
+    vec3 col;
+    col.r = texture2D(tex, vec2(uv.x+a,uv.y)).r;
+    col.g = texture2D(tex, uv).g;
+    col.b = texture2D(tex, vec2(uv.x-a,uv.y)).b;
+    // 8-tap phosphor bloom
+    vec3 bl=vec3(0.0); float d=0.0035;
+    bl+=texture2D(tex,uv+vec2(d,0.)).rgb; bl+=texture2D(tex,uv+vec2(-d,0.)).rgb;
+    bl+=texture2D(tex,uv+vec2(0.,d)).rgb; bl+=texture2D(tex,uv+vec2(0.,-d)).rgb;
+    bl+=texture2D(tex,uv+vec2(d,d)).rgb;  bl+=texture2D(tex,uv+vec2(-d,-d)).rgb;
+    bl+=texture2D(tex,uv+vec2(d,-d)).rgb; bl+=texture2D(tex,uv+vec2(-d,d)).rgb;
+    col += (bl/8.0)*uBloom;
+    // scanlines
+    float sl = sin(uv.y*480.0*3.14159)*0.5+0.5;
+    col *= mix(1.0, sl, uScan*0.6);
+    // aperture / shadow mask
+    float mx = mod(gl_FragCoord.x,3.0);
+    vec3 mc = mx<1.0 ? vec3(1.0,0.55,0.55) : (mx<2.0 ? vec3(0.55,1.0,0.55) : vec3(0.55,0.55,1.0));
+    col *= mix(vec3(1.0), mc, uMask);
+    col *= 1.0 + uMask*0.55;            // compensate mask darkening
+    // vignette
+    vec2 vc = uv-0.5;
+    col *= clamp(1.0 - uVig*dot(vc,vc)*2.2, 0.0, 1.0);
+    // flicker + slow roll
+    float n = fract(sin(time*89.0)*43758.5453);
+    col *= 1.0 - uFlicker*0.10*n;
+    col *= 1.0 + uFlicker*0.03*sin(uv.y*4.0 - time*1.2);
+    col *= uBright;
+    gl_FragColor = vec4(col,1.0);
+  }`;
+
+  const sh=(t,s)=>{const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);
+    if(!gl.getShaderParameter(o,gl.COMPILE_STATUS))throw gl.getShaderInfoLog(o);return o;};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,"a");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+
+  const tex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+
+  const U={}; ["res","time","uCurv","uScan","uMask","uBloom","uAberr","uFlicker","uBright","uVig"]
+    .forEach(k=>U[k]=gl.getUniformLocation(prog,k));
+
+  uploadTexture=()=>{ gl.bindTexture(gl.TEXTURE_2D,tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,TX); };
+
+  function resize(){
+    const dpr=Math.min(devicePixelRatio||1,2);
+    const w=canvas.clientWidth||720, h=w*3/4;
+    canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+    gl.viewport(0,0,canvas.width,canvas.height);
+  }
+  addEventListener("resize",()=>{resize();if(reduce)render(performance.now());});
+  resize();
+
+  render=(t)=>{
+    const time=t*0.001;
+    gl.uniform2f(U.res,canvas.width,canvas.height);
+    gl.uniform1f(U.time,time);
+    gl.uniform1f(U.uCurv,P.curv); gl.uniform1f(U.uScan,P.scan);
+    gl.uniform1f(U.uMask,P.mask); gl.uniform1f(U.uBloom,P.bloom);
+    gl.uniform1f(U.uAberr,P.aberr); gl.uniform1f(U.uFlicker,P.flicker);
+    gl.uniform1f(U.uBright,P.bright); gl.uniform1f(U.uVig,P.vig);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+  };
+  if(!reduce){ const loop=t=>{render(t);requestAnimationFrame(loop);}; requestAnimationFrame(loop); }
+}
+
+// =====================  UI wiring  =====================
+const knobsEl=document.getElementById("knobs");
+const valEls={}, inputEls={};
+DIALS.forEach(([key,label])=>{
+  const [min,max]=RANGE[key]||RANGE._def;
+  const wrap=document.createElement("div"); wrap.className="knob";
+  wrap.innerHTML=`<label>${label}<span class="val" id="val-${key}"></span></label>
+    <input type="range" id="in-${key}" min="${min}" max="${max}" step="0.01">`;
+  knobsEl.appendChild(wrap);
+  const inp=wrap.querySelector("input"); inputEls[key]=inp; valEls[key]=wrap.querySelector(".val");
+  inp.addEventListener("input",()=>{ P[key]=parseFloat(inp.value); syncDial(key); if(reduce)render(performance.now()); });
+});
+function syncDial(key){
+  const [min,max]=RANGE[key]||RANGE._def;
+  inputEls[key].value=P[key];
+  inputEls[key].style.setProperty("--fill",((P[key]-min)/(max-min)*100)+"%");
+  valEls[key].textContent=P[key].toFixed(2);
+}
+
+const presetsEl=document.getElementById("presets");
+PRESETS.forEach((ps,i)=>{
+  const b=document.createElement("button"); b.textContent=ps.label; b.setAttribute("aria-pressed", i===0);
+  b.addEventListener("click",()=>selectPreset(ps,b));
+  presetsEl.appendChild(b);
+});
+function selectPreset(ps,btn){
+  cur=ps; P={...ps.P};
+  document.querySelectorAll(".presets button").forEach(x=>x.setAttribute("aria-pressed","false"));
+  btn.setAttribute("aria-pressed","true");
+  document.documentElement.style.setProperty("--ink",ps.ink);
+  document.getElementById("text").value=ps.text;
+  DIALS.forEach(([k])=>syncDial(k));
+  drawScreen();
+}
+
+// boot: fonts may load a beat late — redraw once they're ready
+document.getElementById("text").addEventListener("input",drawScreen);
+selectPreset(PRESETS[0],presetsEl.firstChild);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawScreen);
+setTimeout(drawScreen,300);
+</script>

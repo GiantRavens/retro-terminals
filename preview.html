@@ -1,0 +1,213 @@
+<title>Retro Terminals — profile gallery</title>
+<style>
+  :root{
+    --ground:#0b0d0b;--panel:#101410;--ink:#c6cdc0;--ink-dim:#727b6f;
+    --accent:#39e05c;--amber:#ffb000;--hair:rgba(120,150,120,.16);--gap:20px;
+    --mono:ui-monospace,"SF Mono","Menlo","Consolas",monospace;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:var(--mono);line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(120% 80% at 50% -10%,rgba(57,224,92,.06),transparent 60%);
+  }
+  .wrap{max-width:1160px;margin:0 auto;padding:56px 24px 72px}
+  header{border-bottom:1px solid var(--hair);padding-bottom:28px;margin-bottom:20px}
+  .eyebrow{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+  h1{font-family:var(--mono);font-weight:600;font-size:clamp(30px,6vw,54px);line-height:1.02;letter-spacing:-.01em;margin:0;text-wrap:balance}
+  h1 .cur{display:inline-block;width:.56em;height:1.02em;background:var(--accent);transform:translateY(.14em);margin-left:.12em;animation:blink 1.06s steps(1) infinite}
+  .lede{max-width:64ch;color:var(--ink-dim);margin:18px 0 0;font-size:15px}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .secthead{margin:40px 0 18px;padding-bottom:10px;border-bottom:1px solid var(--hair);display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .secthead h2{margin:0;font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .secthead p{margin:0;color:var(--ink-dim);font-size:12.5px;flex:1;min-width:200px}
+  .secthead .count{color:var(--ink);font-variant-numeric:tabular-nums;font-size:12px}
+
+  .grid{display:grid;gap:var(--gap);grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+  .term{border:1px solid var(--hair);border-radius:5px;overflow:hidden;background:var(--panel);display:flex;flex-direction:column;box-shadow:0 1px 0 rgba(255,255,255,.02),0 14px 34px -22px rgba(0,0,0,.9)}
+  .bar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid rgba(0,0,0,.35);font-size:12px;letter-spacing:.04em}
+  .dots{display:flex;gap:6px}
+  .dots i{width:9px;height:9px;border-radius:50%;display:block;opacity:.85}
+  .bar .name{margin-left:4px;font-weight:600}
+  .bar .era{margin-left:auto;color:var(--ink-dim);font-size:11px;letter-spacing:.06em}
+  .screen{position:relative;padding:14px 15px 16px;min-height:158px;font-size:14px;white-space:pre-wrap}
+  .screen .ln{display:block}
+  .screen .cur{display:inline-block;width:.6em;height:1.05em;transform:translateY(.18em);animation:blink 1.06s steps(1) infinite}
+  .screen.under .cur{height:.16em;transform:translateY(.05em)}
+  .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(rgba(0,0,0,0) 0 2px,rgba(0,0,0,.22) 2px 3px)}
+  .ansi{display:grid;grid-template-columns:repeat(16,1fr);height:11px}
+  .ansi i{display:block}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 14px;padding:11px 14px;border-top:1px solid rgba(0,0,0,.3);background:rgba(0,0,0,.18);font-size:11px;color:var(--ink-dim);letter-spacing:.02em}
+  .meta b{color:var(--ink);font-weight:600}
+
+  footer{margin-top:48px;padding-top:26px;border-top:1px solid var(--hair);display:grid;gap:22px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  footer h3{margin:0 0 8px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+  footer p{margin:0;color:var(--ink-dim);font-size:13px}
+  kbd{background:#1b201b;border:1px solid var(--hair);border-bottom-width:2px;border-radius:4px;padding:1px 6px;font:inherit;font-size:12px;color:var(--ink)}
+  code{color:var(--amber)}
+  @keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){.cur{animation:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">iTerm2 · Dynamic Profiles</p>
+    <h1>Retro Terminals<span class="cur"></span></h1>
+    <p class="lede"><b>Thirty</b> live iTerm2 profiles in three packs — real machines, fictional
+      computers, and aesthetic movements. Every card is rendered in that profile's <b>real installed
+      font and exact colors</b>. Pick one from <kbd>⌘O</kbd> and filter by tag.
+      <span style="color:var(--ink-dim)">Fonts marked <b style="color:var(--ink)">*</b> use Departure Mono — originals aren't freely hosted.</span></p>
+  </header>
+
+  <div id="sections"></div>
+
+  <footer>
+    <div><h3>Use one</h3><p>Profiles menu, or <kbd>⌘O</kbd>, filter by <b>retro</b> / <b>sci-fi</b> / <b>aesthetic</b>. Set a default in Settings ▸ Profiles ▸ Other Actions.</p></div>
+    <div><h3>Match the prompt</h3><p><code>source retro-prompts.zsh</code> then <code>retro c64</code>, <code>retro hal</code>, <code>retro steampunk</code>… <code>retro off</code> restores starship.</p></div>
+    <div><h3>Tweak</h3><p>Edit hex in <code>build_profiles.py</code>, re-run, tabs restyle within a second — iTerm2 hot-loads the JSON.</p></div>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+const M=[
+ {name:"Paper Teletype",era:"1963 · ASR-33",font:"'Courier',monospace",bg:"#F2EAD3",fg:"#3A2E1C",bold:"#1E160C",cur:"#6B5A3C",curType:"under",
+  ansi:["#2A2016","#8A2E1F","#4F5A2A","#8A6A1F","#3A4A66","#6E3A5A","#3F6660","#453720","#5A4C38","#B04A33","#6E7A3A","#B08A2A","#52618A","#8E5A7E","#57847C","#241B10"],
+  meta:["Courier","underline","no glow"],s:["TELETYPE MODEL 33 ASR","CONNECTED AT 110 BAUD",".R BASIC","10 PRINT \"HELLO, WORLD\"","RUN","HELLO, WORLD"]},
+ {name:"CRT Green Phosphor",era:"P1 · VT220",font:"'Glass TTY VT220',monospace",bg:"#001200",fg:"#33FF33",bold:"#66FF66",cur:"#33FF33",curType:"block",fx:true,
+  ansi:["#003300","#00A000","#00CC00","#33DD00","#007700","#00B400","#00D060","#33FF33","#005500","#33DD33","#66FF66","#99FF33","#00CC66","#66FF99","#99FFCC","#CCFFCC"],
+  meta:["Glass TTY VT220","block","glow + scanlines"],s:["login: skip","Last login: Tue Jul  3 10:12","$ ls /usr/bin | wc -l","1138","$ uptime","10:14  load 0.08 0.03"]},
+ {name:"CRT Amber Phosphor",era:"P3 · Wyse",font:"'Glass TTY VT220',monospace",bg:"#180E00",fg:"#FFB000",bold:"#FFCC33",cur:"#FFB000",curType:"block",fx:true,
+  ansi:["#3A2600","#B36B00","#C88400","#E0A000","#8A5500","#C07000","#D89000","#FFB000","#5A3C00","#FFC233","#FFCC44","#FFD966","#E09000","#FFCC80","#FFE0A0","#FFE8C0"],
+  meta:["Glass TTY VT220","block","glow + scanlines"],s:["$ cat /etc/motd","  Authorized users only.","$ who","skip   ttyS0   Jul  3 10:02","$ vi report.txt"]},
+ {name:"Linux Console",era:"1997 · tty1",font:"'Terminus (TTF)',monospace",bg:"#000000",fg:"#AAAAAA",bold:"#FFFFFF",cur:"#AAAAAA",curType:"under",
+  ansi:["#000000","#AA0000","#00AA00","#AA5500","#0000AA","#AA00AA","#00AAAA","#AAAAAA","#555555","#FF5555","#55FF55","#FFFF55","#5555FF","#FF55FF","#55FFFF","#FFFFFF"],
+  meta:["Terminus","underline","VGA 16-color"],s:["Debian GNU/Linux 2.0 futhark tty1","","futhark login: skip","Password: ","$ uname -a","Linux futhark 2.0.36 i586"]},
+ {name:"SunOS cmdtool",era:"1994 · OpenWindows",font:"'Courier',monospace",bg:"#DAD6C8",fg:"#14120C",bold:"#000000",cur:"#14120C",curType:"block",
+  ansi:["#000000","#A02020","#207020","#8A6A00","#2A3A9A","#802A80","#1F7A7A","#555555","#808080","#C03030","#2F9A2F","#9A8000","#3A4AC0","#A03AA0","#2A9A9A","#14120C"],
+  meta:["Courier","block","light workstation"],s:["SunOS Release 4.1.4 (GENERIC)","sun% hostname","mjolnir","sun% arch","sun4m","sun% "]},
+ {name:"IRIX wsh",era:"1998 · SGI Indy",font:"'Menlo',monospace",bg:"#0C2530",fg:"#B8CCD0",bold:"#E4F0F2",cur:"#5FD7D7",curType:"block",
+  ansi:["#0A1E26","#E05A5A","#5FD770","#E0C060","#5B8AC4","#C07AD0","#5FD7D7","#B8CCD0","#37545E","#FF8080","#8AF0A0","#F0E090","#86AEE0","#E0A0F0","#90F0F0","#E4F0F2"],
+  meta:["Menlo","block","SGI blue accent"],s:["IRIX Release 6.5 IP32","indy 1% hinv","CPU: MIPS R5000","Main memory: 128 Mbytes","indy 2% "]},
+ {name:"Commodore 64",era:"1982 · PETSCII",font:"'C64 Pro Mono',monospace",bg:"#40318D",fg:"#7869C4",bold:"#A59BE0",cur:"#7869C4",curType:"block",
+  ansi:["#000000","#9F4E44","#5CAB5E","#C9D487","#50459B","#8B3F96","#6ABFC6","#ADADAD","#626262","#CB7E75","#ACEA88","#EDF171","#887ECB","#B65AC6","#9FE0E6","#FFFFFF"],
+  meta:["C64 Pro Mono","block","Pepto palette"],s:["    **** COMMODORE 64 BASIC V2 ****",""," 64K RAM SYSTEM  38911 BASIC BYTES FREE","","READY.","LOAD\"*\",8,1"]},
+ {name:"MS-DOS Editor",era:"1994 · 6.22",font:"'IBM 3270',monospace",bg:"#0000AA",fg:"#C6C6C6",bold:"#FFFFFF",cur:"#FFFFFF",curType:"under",
+  ansi:["#000000","#AA0000","#00AA00","#AA5500","#0000AA","#AA00AA","#00AAAA","#AAAAAA","#555555","#FF5555","#55FF55","#FFFF55","#5555FF","#FF55FF","#55FFFF","#FFFFFF"],
+  meta:["IBM 3270","underline","blue-screen edit.com"],s:["C:\\>ver","","MS-DOS Version 6.22","","C:\\>edit hello.bas","C:\\>"]},
+ {name:"Amiga Workbench",era:"1988 · WB 1.3",font:"'Departure Mono',monospace",bg:"#0055AA",fg:"#FFFFFF",bold:"#FFFFFF",cur:"#FF8800",curType:"block",
+  ansi:["#000000","#DD4400","#55AA55","#FF8800","#0055AA","#AA55AA","#55AAAA","#FFFFFF","#555555","#FF8800","#88DD88","#FFBB55","#66BBFF","#DD88DD","#88DDDD","#FFFFFF"],
+  meta:["Departure Mono","block","blue / white / orange"],s:["AmigaDOS","","1> dir df0:","  Workbench   Prefs   System","1> info","1> "]},
+ {name:"NeXTSTEP",era:"1991 · 3.3",font:"'Menlo',monospace",bg:"#E8E8E8",fg:"#141414",bold:"#000000",cur:"#000000",curType:"block",
+  ansi:["#000000","#9A2E2E","#2E7A2E","#7A6A1E","#2E4A8A","#7A2E7A","#1E6E6E","#4A4A4A","#7A7A7A","#C04040","#40A040","#A08A20","#4060C0","#A040A0","#30A0A0","#141414"],
+  meta:["Menlo","block","neutral greyscale"],s:["NeXTSTEP 3.3 (mach)","console login: me","next% hostname","cube","next% "]},
+ {name:"Apple II",era:"1977 · Applesoft",font:"'Print Char 21',monospace",bg:"#000800",fg:"#33E033",bold:"#7CFF7C",cur:"#33E033",curType:"block",
+  ansi:["#002000","#009000","#00BB00","#33C000","#007000","#00A030","#00C050","#33E033","#005000","#33CC33","#66FF66","#99FF44","#00CC55","#66FF88","#99FFBB","#CCFFCC"],
+  meta:["Print Char 21","block","crisp, no glow"],s:["Apple ][","","]10 PRINT \"HELLO\"","]RUN","HELLO","]"]},
+ {name:"ZX Spectrum",era:"1982 · Sinclair",font:"'Departure Mono',monospace",bg:"#FFFFFF",fg:"#000000",bold:"#000000",cur:"#000000",curType:"block",
+  ansi:["#000000","#D70000","#00D700","#D7D700","#0000D7","#D700D7","#00D7D7","#D7D7D7","#555555","#FF0000","#00FF00","#FFFF00","#0000FF","#FF00FF","#00FFFF","#FFFFFF"],
+  meta:["Departure Mono*","block","ULA primaries"],s:["(C) 1982 Sinclair Research Ltd","","10 PRINT \"HELLO\"","RUN","HELLO","0 OK, 0:1"]},
+ {name:"Atari 8-bit",era:"1979 · 400/800",font:"'Departure Mono',monospace",bg:"#4351C7",fg:"#C7CFF7",bold:"#FFFFFF",cur:"#FFFFFF",curType:"block",
+  ansi:["#000000","#C84C4C","#4CB84C","#D0A040","#4351C7","#A060C0","#4CB0C8","#C7CFF7","#5A64A0","#E08080","#90E090","#F0C060","#8090F0","#C090E0","#90D0E8","#FFFFFF"],
+  meta:["Departure Mono*","block","Atari blue + gold"],s:["ATARI 8-BIT COMPUTER","","READY","10 PRINT \"HELLO\"","RUN","HELLO","READY"]},
+ {name:"BBC Micro Mode 7",era:"1981 · Acorn",font:"'Bedstead',monospace",bg:"#000000",fg:"#FFFFFF",bold:"#FFFFFF",cur:"#FFFFFF",curType:"block",
+  ansi:["#000000","#FF0000","#00FF00","#FFFF00","#0000FF","#FF00FF","#00FFFF","#FFFFFF","#555555","#FF0000","#00FF00","#FFFF00","#0000FF","#FF00FF","#00FFFF","#FFFFFF"],
+  meta:["Bedstead","block","teletext primaries"],s:["BBC Computer 32K","","Acorn DFS","","BASIC","",">"]},
+ {name:"Plan 9 acme",era:"1992 · Bell Labs",font:"'Menlo',monospace",bg:"#FFFFEA",fg:"#000000",bold:"#000000",cur:"#000000",curType:"block",
+  ansi:["#000000","#99353A","#3B7A3B","#8A6A1E","#2E4A8A","#7A2E7A","#1E6E6E","#4A4A4A","#6E6E6E","#C04040","#40A040","#A08A20","#4060C0","#A040A0","#30A0A0","#000000"],
+  meta:["Menlo","block","acme pale-yellow"],s:["Plan 9 from Bell Labs","term% date","Thu Jul  3 10:14:00 GMT 2026","term% "]},
+];
+
+const MF=[
+ {name:"The Matrix",era:"1999",font:"'Glass TTY VT220',monospace",bg:"#000000",fg:"#00FF41",bold:"#6BFFB0",cur:"#00FF41",curType:"block",fx:true,
+  ansi:["#001200","#008F11","#00B72E","#00D93B","#006B0E","#00A030","#00C060","#00FF41","#005A0E","#22C24E","#6BFF8B","#9BFF6B","#00CC55","#6BFFB0","#A8FFC0","#DFFFE8"],
+  meta:["Glass TTY VT220","block","digital rain"],s:["Wake up, Neo...","","The Matrix has you...","","Follow the white rabbit.","","neo@zion:~$ "]},
+ {name:"TRON",era:"1982",font:"'Glass TTY VT220',monospace",bg:"#010A12",fg:"#7EE8FF",bold:"#C8F6FF",cur:"#FF9A3C",curType:"block",fx:true,
+  ansi:["#001018","#FF6A3C","#4CE0C0","#FFB84C","#2A9AD0","#8CC8FF","#7EE8FF","#BCE8FF","#14506A","#FF9A3C","#8CFFE8","#FFD08C","#5AB8FF","#B0D8FF","#C8F6FF","#FFFFFF"],
+  meta:["Glass TTY VT220","block","ENCOM grid"],s:["ENCOM MAINFRAME  OS-12","","TRON: I FIGHT FOR THE USERS","","END OF LINE.","","flynn> "]},
+ {name:"Neuromancer",era:"1984 · Sprawl",font:"'Menlo',monospace",bg:"#05060A",fg:"#00F0C0",bold:"#7CFFE0",cur:"#FF2E97",curType:"block",fx:true,
+  ansi:["#0A0A12","#FF2E97","#00F0C0","#F0E14C","#3A5CFF","#C86CFF","#00D0FF","#A8C0D0","#303048","#FF6CB0","#6CFFD8","#FFF07C","#6C90FF","#E0A0FF","#8CF0FF","#E8F4FF"],
+  meta:["Menlo","bar","Ono-Sendai deck"],s:["ONO-SENDAI CYBERSPACE 7","","The sky above the port was the","color of television, tuned to","a dead channel.","","case@sprawl:~$ "]},
+ {name:"HAL 9000",era:"2001",font:"'Glass TTY VT220',monospace",bg:"#0A0000",fg:"#FF2A2A",bold:"#FF6B6B",cur:"#FF2A2A",curType:"block",fx:true,
+  ansi:["#200000","#C00000","#E02020","#FF3030","#900000","#C81818","#E04040","#FF2A2A","#500000","#FF5050","#FF7070","#FF9060","#E03030","#FF7090","#FFA0A0","#FFD0D0"],
+  meta:["Glass TTY VT220","block","red monochrome"],s:["HAL 9000","HEURISTIC ALGORITHMIC COMPUTER","","I am completely operational and","all my circuits are functioning","perfectly.","","HAL> "]},
+ {name:"Fallout Pip-Boy",era:"RobCo Termlink",font:"'Glass TTY VT220',monospace",bg:"#001200",fg:"#18FF6D",bold:"#6BFFA0",cur:"#18FF6D",curType:"block",fx:true,
+  ansi:["#002400","#12B04A","#18D858","#3AF06A","#0C8038","#14C050","#1AE070","#18FF6D","#0A6030","#3AE070","#6BFFA0","#9BFF7A","#18D080","#6BFFC0","#A8FFD0","#DFFFE8"],
+  meta:["Glass TTY VT220","block","heavy scanlines"],s:["ROBCO INDUSTRIES (TM) TERMLINK","","Enter Password Now","","RobCo> "]},
+ {name:"Severance Lumon",era:"MDR",font:"'Menlo',monospace",bg:"#0A2440",fg:"#86D8E0",bold:"#C8F0F4",cur:"#86D8E0",curType:"block",
+  ansi:["#071A2E","#E06A6A","#6ED0B0","#E0C878","#5A9AD0","#B08CD0","#86D8E0","#A8C8D0","#244A64","#FF9090","#9AF0D0","#F0E0A0","#86B8F0","#D0B0F0","#B0F0F8","#E8F8FC"],
+  meta:["Menlo","block","teal on navy"],s:["LUMON INDUSTRIES","","Macrodata Refinement","","Please enjoy each number equally.","","MDR> "]},
+ {name:"Cyberpunk 2077",era:"Night City",font:"'Departure Mono',monospace",bg:"#0A0A0F",fg:"#FCEE0A",bold:"#FFF66B",cur:"#00F0FF",curType:"block",
+  ansi:["#12121A","#FF003C","#00F0A0","#FCEE0A","#00B0FF","#FF2E97","#00F0FF","#C0C0A0","#3A3A2A","#FF4060","#6CFFC0","#FFF66B","#6CC0FF","#FF6CB0","#8CF0FF","#FFFFF0"],
+  meta:["Departure Mono","block","yellow + cyan"],s:["NIGHT CITY // NETWATCH","","BREACH PROTOCOL: ACTIVE","","Wake up, Samurai. We have a","city to burn.","","V@nightcity:~$ "]},
+ {name:"Blade Runner",era:"Esper",font:"'Glass TTY VT220',monospace",bg:"#0E0A06",fg:"#FFB86B",bold:"#FFD9A0",cur:"#6BD0D0",curType:"block",fx:true,
+  ansi:["#201408","#E0603C","#6BB0A0","#FFA04C","#4C8AA0","#C88CA0","#6BD0D0","#E0C0A0","#503820","#FF8A5C","#9BD0C0","#FFC87C","#7CB0C8","#E0A8C0","#A8E8E8","#FFE8D0"],
+  meta:["Glass TTY VT220","block","amber + teal"],s:["ESPER   -   TYRELL CORP","","ENHANCE 224 TO 176","","More human than human.","","esper> "]},
+ {name:"WOPR",era:"WarGames · NORAD",font:"'IBM 3270',monospace",bg:"#000A18",fg:"#4CC8FF",bold:"#A6E4FF",cur:"#FF8A2C",curType:"block",fx:true,
+  ansi:["#001424","#1E6AA0","#3AA0C0","#4CC8FF","#185A90","#6A8AC0","#4CC8FF","#A6E4FF","#0A3A5A","#5AB0E0","#8CD8FF","#FFB84C","#6AB0FF","#B0C8FF","#C8ECFF","#FFFFFF"],
+  meta:["IBM 3270","block","radar blue"],s:["GREETINGS PROFESSOR FALKEN.","","SHALL WE PLAY A GAME?","","WOPR> "]},
+ {name:"Outrun",era:"Synthwave · 1986",font:"'Departure Mono',monospace",bg:"#1A0A2E",fg:"#FF3C8C",bold:"#FF8CC0",cur:"#2DE2E6",curType:"block",fx:true,
+  ansi:["#2A1040","#FF2D6B","#2DE2E6","#FFB03A","#7A4CFF","#FF3C8C","#43D9FF","#E0B0FF","#4A2A6A","#FF6BA0","#6BF0F0","#FFD06B","#A07CFF","#FF8CC0","#8CF0FF","#FFE0FF"],
+  meta:["Departure Mono","block","hot pink + cyan"],s:["OUTRUN // 1986","","MIAMI  05:44   84F","","> DRIVE","","outrun> "]},
+];
+
+const MA=[
+ {name:"Steampunk",era:"Aetheric",font:"'Courier',monospace",bg:"#1E140A",fg:"#E8B85C",bold:"#FFD98A",cur:"#C87A3C",curType:"block",
+  ansi:["#1A1008","#B0562C","#7A8A4C","#E8B85C","#6A7A8A","#A06A8A","#4C8A78","#C8A878","#4A3820","#D07A44","#A8B86C","#FFD98A","#8A9AAA","#C89AB0","#7ABFA8","#F0E0C0"],
+  meta:["Courier","block","brass & verdigris"],s:["AETHERIC DIFFERENCE ENGINE  MK.III","","By Appointment to Her Majesty","","STEAM PRESSURE: NOMINAL","","aether> "]},
+ {name:"Solarpunk",era:"Renewable",font:"'Menlo',monospace",bg:"#F2EFDF",fg:"#24614A",bold:"#15402F",cur:"#D9A441",curType:"block",
+  ansi:["#1E2A20","#B0503A","#3C8A50","#C08A2A","#2A7A8A","#8A5A8A","#2E9A88","#5A6A58","#7A8A78","#C86A50","#4CA860","#D9A441","#3A9AAE","#A87AA8","#4CBAA0","#24614A"],
+  meta:["Menlo","block","cream + leaf-green"],s:["SOLARPUNK COLLECTIVE // NODE 7","","Grid: 100% renewable","","The future is a garden.","","garden> "]},
+ {name:"Dieselpunk",era:"Machine Age",font:"'IBM 3270',monospace",bg:"#14201E",fg:"#D8CBA8",bold:"#F0E8D0",cur:"#C05A2C",curType:"block",
+  ansi:["#101A18","#C05A2C","#6A8A5C","#D9A85C","#3A6A7A","#9A6A6A","#3A8A8A","#C8BC98","#3A4A46","#E07A44","#8AAA6C","#F0C878","#5A9AAA","#B08A8A","#6ABAB0","#F0E8D0"],
+  meta:["IBM 3270","block","teal & rust"],s:["ATLANTROPA WORKS   UNIT 09","","TURBINE ONLINE","","FOR THE MACHINE AGE","","works> "]},
+ {name:"Vaporwave",era:"A E S T H E T I C",font:"'Departure Mono',monospace",bg:"#1B1030",fg:"#9FE7F5",bold:"#C0F0FA",cur:"#FF9CE0",curType:"block",fx:true,
+  ansi:["#2A1B45","#FF7AB0","#8CE0C8","#F5D98C","#8CA0F0","#C9A7FF","#9FE7F5","#E8D8F0","#4A3A6A","#FFA0D0","#B0F0E0","#FFE8B0","#A8B8FF","#E0C0FF","#C0F0FA","#FFFFFF"],
+  meta:["Departure Mono","block","pastel purple"],s:["VAPOR OS   v3.11","","AESTHETIC LOADED","","PLAY AT YOUR OWN RISK","","vapor> "]},
+ {name:"Atompunk",era:"World of Tomorrow",font:"'Courier',monospace",bg:"#EAE3CE",fg:"#1E5A5A",bold:"#0E3A3A",cur:"#E0654C",curType:"block",
+  ansi:["#20302E","#D0503A","#4C8A6A","#C08A2A","#3A7A8A","#A05A7A","#2E9A9A","#5A5A48","#7A7A68","#E0654C","#5CA87A","#D9A441","#4C9AAE","#C07A9A","#4CBABA","#1E5A5A"],
+  meta:["Courier","block","atomic-age"],s:["ATOMIC ELECTRONIC BRAIN   MODEL 1959","","THE WORLD OF TOMORROW... TODAY!","","POWERED BY THE ATOM","","atom> "]},
+];
+
+function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function shade(hex){const n=parseInt(hex.slice(1),16);let r=(n>>16)&255,g=(n>>8)&255,b=n&255;const f=0.72;return `rgb(${r*f|0},${g*f|0},${b*f|0})`;}
+
+function buildCard(m){
+  const dots=`<i style="background:${m.ansi[9]}"></i><i style="background:${m.ansi[11]}"></i><i style="background:${m.ansi[10]}"></i>`;
+  const lines=m.s.map((l,i)=>{
+    const col=i===0?m.bold:m.fg, last=i===m.s.length-1;
+    return `<span class="ln" style="color:${col}">${escapeHtml(l)}${last?`<span class="cur" style="background:${m.cur}"></span>`:""}</span>`;
+  }).join("");
+  const swatches=m.ansi.map(c=>`<i style="background:${c}"></i>`).join("");
+  const card=document.createElement("div"); card.className="term";
+  card.innerHTML=`
+    <div class="bar" style="background:${shade(m.bg)};color:${m.fg}">
+      <div class="dots">${dots}</div>
+      <span class="name">${escapeHtml(m.name)}</span>
+      <span class="era">${escapeHtml(m.era)}</span>
+    </div>
+    <div class="screen ${m.curType==="under"?"under":""}" style="background:${m.bg};font-family:${m.font};${m.fx?`text-shadow:0 0 4px ${m.fg}88`:""}">
+      ${lines}${m.fx?'<div class="scan"></div>':""}
+    </div>
+    <div class="ansi">${swatches}</div>
+    <div class="meta"><span>Font <b>${escapeHtml(m.meta[0])}</b></span><span>Cursor <b>${escapeHtml(m.meta[1])}</b></span><span><b>${escapeHtml(m.meta[2])}</b></span></div>`;
+  return card;
+}
+
+const SECTIONS=[
+  {title:"Real machines", tag:"retro", sub:"Fifteen from the phosphor age — authentic palette, period font, cursor.", list:M},
+  {title:"Fictional computers", tag:"sci-fi", sub:"Ten screens from film & games — the Matrix, HAL, Neuromancer, Night City.", list:MF},
+  {title:"Aesthetic movements", tag:"aesthetic", sub:"Five genre looks — steampunk brass, solarpunk gardens, vaporwave pastels.", list:MA},
+];
+const root=document.getElementById("sections");
+for(const s of SECTIONS){
+  const head=document.createElement("div"); head.className="secthead";
+  head.innerHTML=`<h2>${s.title}</h2><p>${s.sub}</p><span class="count">${s.list.length} · tag: ${s.tag}</span>`;
+  root.appendChild(head);
+  const g=document.createElement("div"); g.className="grid";
+  s.list.forEach(m=>g.appendChild(buildCard(m)));
+  root.appendChild(g);
+}
+</script>
