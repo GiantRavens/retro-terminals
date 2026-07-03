@@ -57,6 +57,7 @@ typeset -gA _RETRO_PROMPTS=(
   openstep    '%F{246}openstep%% %f'
   weyland     '%F{179}wy> %f'
   mother      '%F{43}MU/TH/UR> %f'
+  muthur      '%F{46}MU/TH/UR> %f'
   apollo      '%F{75}APOLLO> %f'
   tyrell      '%F{179}tyrell> %f'
   wallace     '%F{80}wallace> %f'

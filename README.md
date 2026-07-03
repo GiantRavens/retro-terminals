@@ -1,6 +1,6 @@
 # Retro Terminals — iTerm2 profiles
 
-**37 iTerm2 profiles** in four groups — real historic machines (`retro`),
+**39 iTerm2 profiles** in four groups — real historic machines (`retro`),
 fictional computers (`sci-fi`), aesthetic movements (`aesthetic`), and the
 Alien/Blade Runner megacorps (`corp`) — generated from a declarative palette spec
 and installed as iTerm2 **Dynamic Profiles**. Each group is its own JSON file in
@@ -83,7 +83,8 @@ Spread across distinct hues so they don't all read as "amber sci-fi":
 | Profile | Look |
 |---|---|
 | Weyland-Yutani | The Company — amber-gold CRT with green data accents |
-| MU-TH-UR 6000 | The Nostromo's MOTHER, teal-green (*interface 2037, ready for inquiry*) |
+| MU-TH-UR 6000 | The Nostromo's MOTHER, stylized teal-green |
+| MU-TH-UR 6000 CRT | Screen-accurate MOTHER — bright P1 phosphor green (*interface 2037, ready for inquiry*) |
 | Seegson APOLLO | Sevastopol's budget AI — cold blue-white, red working light |
 | Tyrell Corporation | Opulent candle-gold + deep red (*more human than human*) |
 | Wallace Corporation | 2049 brutalist cold teal with one warm accent |

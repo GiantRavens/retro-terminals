@@ -669,7 +669,16 @@ CORP = [
         transparency=0.05, blur=True, blur_radius=1.6, vspacing=1.05,
         ansi=["002012","2CB07A","22C88A","43E6B0","1A8A66","2CB490","30D0A0","43E6B0",
               "0A5A3C","4CE0A8","8CFFD0","AEFFDE","30C0A0","8CFFE0","B8FFE8","DFFFF0"],
-        blurb="MOTHER, the Nostromo's teal-green interface. Interface 2037 ready for inquiry."),
+        blurb="MOTHER, stylized teal-green. See 'MU-TH-UR 6000 CRT' for the screen-accurate green."),
+
+    machine("MU-TH-UR 6000 CRT", "Glass TTY VT220", 18, ns="Corp",
+        bg="000A00", fg="33FF2E", bold="7CFF6B", cursor="33FF2E", cursor_text="000A00",
+        selection="0A5A0A", selected_text="DFFFD0", link="7CFF8B",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.7, vspacing=1.06,
+        ansi=["001A00","0FA00F","1FC81F","4AE02A","0A7A0A","14B014","1FD040","33FF2E",
+              "0A5A0A","4AE04A","7CFF6B","A6FF4A","2ADD5A","7CFF8B","B0FFA0","DFFFD0"],
+        blurb="Screen-accurate MU/TH/UR: bright P1 phosphor green on black, heavy scanlines."),
 
     machine("Seegson APOLLO", "Menlo", 13, ns="Corp",
         bg="0A1018", fg="A8C8DC", bold="DCEAF4", cursor="FF6A4C", cursor_text="0A1018",
@@ -711,6 +720,8 @@ CBANNERS = {
     "Weyland-Yutani":      ["WEYLAND-YUTANI CORP   -   DIVISION 12", "BUILDING BETTER WORLDS",
                             "", "SPECIAL ORDER 937: CLASSIFIED"],
     "MU-TH-UR 6000":       ["INTERFACE 2037", "READY FOR INQUIRY"],
+    "MU-TH-UR 6000 CRT":   ["MU/TH/UR 6000", "INTERFACE 2037 READY FOR INQUIRY",
+                            "", "> WHAT IS THE NATURE OF THE EMERGENCY?"],
     "Seegson APOLLO":      ["SEEGSON APOLLO", "PERSONAL TERMINAL MODEL 3",
                             "", "How can I help you return to work?"],
     "Tyrell Corporation":  ["TYRELL CORPORATION", "MORE HUMAN THAN HUMAN", "", "NEXUS-6 REGISTRY"],
@@ -719,7 +730,7 @@ CBANNERS = {
                             "", "You are in a desert, walking along in the sand..."],
 }
 
-CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "Seegson APOLLO",
+CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "MU-TH-UR 6000 CRT", "Seegson APOLLO",
           "Tyrell Corporation", "Voight-Kampff"}
 
 
