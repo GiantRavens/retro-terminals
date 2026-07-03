@@ -142,29 +142,32 @@ Starship already follows (it styles with ANSI color *names* like `green` /
 ## 6. Opt into theme-following nvim
 
 nvim with `termguicolors` bakes 24-bit hex and ignores the ANSI palette — so it
-doesn't follow the profile the way tmux/starship do. `integration/nvim` ships a
-`retro-ansi` colorscheme that turns `termguicolors` off and draws from cterm
-slots 0–15, so the editor wears whichever profile the window has (green tube →
-monochrome-green nvim; C64 → C64). Add the dir to your runtimepath and toggle:
+doesn't follow the profile the way tmux/starship do. `integration/nvim` is a
+tiny plugin: a `retro-ansi` colorscheme (turns `termguicolors` off, draws from
+cterm slots 0–15) plus a **`:Retro`** command. The editor then wears whichever
+profile the window has (green tube → monochrome-green nvim; C64 → C64).
+
+Install — with **lazy.nvim**, add a local `dir` spec:
 
 ```lua
--- init.lua
-local retro = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
-if vim.fn.isdirectory(retro) == 1 then
-  vim.opt.rtp:append(retro)
-  vim.api.nvim_create_user_command("Retro", function()
-    if vim.g.colors_name == "retro-ansi" then
-      vim.o.termguicolors = true
-      vim.cmd.colorscheme("your-truecolor-scheme")   -- back to the daily driver
-    else
-      vim.cmd.colorscheme("retro-ansi")              -- follow the terminal
-    end
-  end, { desc = "toggle retro-ansi" })
-end
+{ dir = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"),
+  name = "retro-ansi", lazy = false, priority = 900 }
 ```
 
-Then `:Retro` in a retro window (or `:colorscheme retro-ansi`). It's a *mode you
-toggle into*, since following the palette requires 16-color mode.
+or **without a plugin manager**, put the dir on the runtimepath and source the
+command:
+
+```lua
+local d = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
+vim.opt.rtp:append(d)                     -- expose colors/retro-ansi.lua
+vim.cmd.source(d .. "/plugin/retro.lua")  -- define :Retro
+```
+
+Then **`:Retro`** in a retro window. It saves your current colorscheme +
+`termguicolors`, switches to `retro-ansi` (16-color mode so it can follow the
+palette), and `:Retro` again restores exactly what you had — no scheme name is
+hardcoded, so it fits any daily driver. (`:colorscheme retro-ansi` also works if
+you just want to set it directly.)
 
 ## 7. After editing palettes
 

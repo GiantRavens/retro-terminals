@@ -324,19 +324,28 @@ is using.
   `tmux source-file ~/.tmux.conf`. Delete the line to revert. In Ghostty the
   same file works — the CRT shader tints the footer along with everything else.
 - **nvim doesn't either** — modern colorschemes set `termguicolors` and bake
-  24-bit hex, bypassing the ANSI palette entirely. `integration/nvim` ships a
-  `retro-ansi` colorscheme that turns `termguicolors` off and paints every
-  highlight group from slots 0–15, so the editor wears whichever profile the
-  window has (green-phosphor window → monochrome-green nvim; C64 → C64). Put the
-  dir on your runtimepath, then `:colorscheme retro-ansi`:
+  24-bit hex, bypassing the ANSI palette entirely. `integration/nvim` is a tiny
+  plugin — a `retro-ansi` colorscheme (turns `termguicolors` off, paints every
+  highlight group from slots 0–15) plus a **`:Retro`** command. The editor then
+  wears whichever profile the window has (green-phosphor window → monochrome-
+  green nvim; C64 → C64). Point your runtimepath at it — with lazy.nvim:
 
   ```lua
-  vim.opt.rtp:append(vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"))
+  { dir = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"),
+    name = "retro-ansi", lazy = false, priority = 900 }
   ```
 
-  Because it needs 16-color mode, it's a *mode you toggle into* for retro
-  windows, not an always-on scheme — pair it with a `:Retro` command that flips
-  `termguicolors` and swaps back to your truecolor daily driver.
+  or without a plugin manager:
+
+  ```lua
+  local d = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
+  vim.opt.rtp:append(d)                     -- expose colors/retro-ansi.lua
+  vim.cmd.source(d .. "/plugin/retro.lua")  -- define :Retro
+  ```
+
+  Then **`:Retro`** in a retro window: it saves your current scheme, switches to
+  `retro-ansi` (16-color mode), and `:Retro` again restores exactly what you had.
+  It's a mode you toggle into, since following the palette needs 16-color mode.
 
 ## Fonts & provenance
 
