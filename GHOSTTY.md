@@ -30,7 +30,14 @@ python3 build_ghostty.py             # write themes + configs + shader into ~/.c
 | `retro/aliases.sh` | one `ghostty-<name>` launcher per profile |
 
 Flags: `python3 build_ghostty.py --stdout` previews one config without writing;
-`--dest DIR` writes somewhere else.
+`--dest DIR` writes somewhere else; `--no-titles` skips pinning the machine name
+in the window/tab title.
+
+By default each config sets `title = <machine name>`, so the window/tab shows
+which profile it is (handy with several tubes open). It's *static* — it replaces
+the dynamic dir/command title; pass `--no-titles` if you'd rather keep that. The
+iTerm2 side does the same via `build_profiles.py` (a "Profile Name" title
+component, which the shell can't override); `--no-titles` there too.
 
 ---
 

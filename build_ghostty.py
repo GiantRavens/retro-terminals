@@ -31,9 +31,10 @@ Where iTerm2 and Ghostty diverge (documented so the mapping isn't magic):
   * Link Color, Minimum Contrast, Use Bright Bold, boot banners: no clean
     Ghostty equivalent -> dropped. (Banners belong in your shell rc anyway.)
 
-Run:  python3 build_ghostty.py            # write into ~/.config/ghostty
-      python3 build_ghostty.py --stdout   # print one example config, write nothing
-      python3 build_ghostty.py --dest DIR # write into DIR instead
+Run:  python3 build_ghostty.py             # write into ~/.config/ghostty
+      python3 build_ghostty.py --stdout    # print one example config, write nothing
+      python3 build_ghostty.py --dest DIR  # write into DIR instead
+      python3 build_ghostty.py --no-titles # don't pin the machine name in the title
 """
 
 import json
@@ -56,6 +57,11 @@ GROUPS = [
 
 # build_profiles: UNDERLINE, VBAR, BOX = 0, 1, 2
 CURSOR = {0: "underline", 1: "bar", 2: "block"}
+
+# Bake `title = <machine name>` into each config so the window/tab shows which
+# profile it is. Static — it replaces the dynamic dir/command title. Default-on
+# (these are aesthetic profiles; telling windows apart matters); --no-titles off.
+WANT_TITLES = True
 
 SHADER_SRC = os.path.join(HERE, "shaders", "crt.glsl")
 
@@ -129,6 +135,8 @@ def config_lines(p: dict, tube: bool) -> list:
     hs = float(p.get("Horizontal Spacing", 1.0))
     if abs(hs - 1.0) > 1e-6:
         L.append(f"adjust-cell-width = {round((hs - 1.0) * 100)}%")
+    if WANT_TITLES:
+        L.append(f"title = {base_name(p)}")   # static — shows the machine name
     return L
 
 
@@ -251,6 +259,8 @@ def main():
     dest = os.path.expanduser("~/.config/ghostty")
     if "--dest" in argv:
         dest = os.path.abspath(os.path.expanduser(argv[argv.index("--dest") + 1]))
+    if "--no-titles" in argv:
+        globals()["WANT_TITLES"] = False
 
     # Preview one representative tube config, write nothing.
     if "--stdout" in argv:

@@ -17,8 +17,9 @@ Design notes (Cognitive Honing: push logic down, keep the spec declarative):
   * Bitmap/pixel fonts (C64, Terminus, Glass TTY, IBM 3270, Departure Mono)
     render crisp only with anti-aliasing OFF, so each spec carries an `aa` flag.
 
-Run:  python3 build_profiles.py           # write + report
-      python3 build_profiles.py --stdout  # print JSON, don't write
+Run:  python3 build_profiles.py            # write + report
+      python3 build_profiles.py --stdout   # print JSON, don't write
+      python3 build_profiles.py --no-titles # don't pin the Profile Name in the title
 """
 
 import json
@@ -768,6 +769,12 @@ def _write(dest_dir, filename, profiles):
 
 
 def main():
+    # iTerm2 "Title Components" bitmask: 4 = Profile Name. Pinned by default so
+    # the tab/title shows the machine name; the shell (tmux/starship/banner) can
+    # rename the *session* but not the *profile*, so it stays put. --no-titles off.
+    if "--no-titles" not in sys.argv:
+        for p in PROFILES + FICTION + AESTHETIC + CORP:
+            p["Title Components"] = 4
     if "--stdout" in sys.argv:
         print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC + CORP}, indent=2))
         return
