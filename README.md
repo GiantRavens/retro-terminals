@@ -19,11 +19,15 @@ once, rebuild both.
 ### ▶ Live demo
 
 **[Profile gallery](https://giantravens.github.io/retro-terminals/)** ·
-**[CRT playground](https://giantravens.github.io/retro-terminals/crt-playground.html)**
+**[CRT playground](https://giantravens.github.io/retro-terminals/crt-playground.html)** ·
+**[Ghostty Studio](https://giantravens.github.io/retro-terminals/ghostty-studio.html)**
 
 The gallery renders every profile in its real font (the OFL/public-domain fonts
 are embedded, so they show for everyone; the rest need a local install). The
-playground is a live WebGL curved-glass CRT.
+playground is a live WebGL curved-glass CRT. The **studio** browses all 39
+palettes, tunes the CRT live, and publishes a ready-to-use Ghostty profile.
+
+[![Ghostty Studio — browse, tune, publish](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
 
 ## Install (build them into your iTerm2)
 
