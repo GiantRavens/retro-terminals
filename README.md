@@ -258,6 +258,37 @@ regains focus.
 iTerm2 stays the recommended daily driver (scrollback + logging). Ghostty is the
 "fun" terminal you open when you want the real tube.
 
+## Ghostty Studio — browse, tune, publish
+
+`ghostty-studio.html` is a self-contained page that closes the loop: **browse**
+all 39 palettes, **tune** the CRT live, and **publish** the result straight back
+into `~/.config/ghostty`.
+
+```bash
+python3 build_ghostty.py --studio    # regenerate the page from the SPEC
+open ghostty-studio.html
+```
+
+- **Browse** — every machine, grouped by pack, with a live terminal preview in
+  its real font and palette. Tube machines are tagged `CRT`.
+- **Tune** — nine dials that *are* the constants in `shaders/crt.glsl`
+  (curvature, scanlines, aperture grille, aberration, bloom, flicker,
+  brightness, bezel inset, corner radius), plus a per-profile **screen padding**
+  dial. The preview runs the identical WebGL math, so what you see is what
+  Ghostty draws. Toggle **CRT** on any profile to preview/publish the shader.
+- **Publish** — copy the **publish command** and paste it in your terminal. It
+  writes `retro/<slug>` (and the shared `crt.glsl` if CRT is on) and **opens a
+  new window wearing the profile**. A running window keeps the look it was
+  launched with, so publishing hands you a fresh one rather than repainting it.
+  Nothing is written until you paste — the browser can't touch your files, so
+  the tool hands you a shell command instead.
+
+Single-sourced like everything else: the page is filled from `build_profiles.py`
+via `tools/studio-template.html`, so it never drifts from the palettes. Edit a
+color, re-run `--studio`, reload the page. The CRT dials tune the *shared*
+`crt.glsl` — one shader for all tubes — so publishing it updates every tube;
+`screen padding` is per-profile and rewrites that profile's `window-padding`.
+
 ## Fonts & provenance
 
 Installed to `~/Library/Fonts` (all free):
