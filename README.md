@@ -350,6 +350,19 @@ is using.
   `retro-ansi` (16-color mode), and `:Retro` again restores exactly what you had.
   It's a mode you toggle into, since following the palette needs 16-color mode.
 
+## Window titles
+
+Both backends pin the **machine name** in the window/tab title by default, so a
+screen full of tubes is easy to tell apart:
+
+- **iTerm2** (`build_profiles.py`) sets each profile's *Profile Name* title
+  component (`Title Components = 32`). The shell can rename the *session* but not
+  the *profile*, so the machine name stays put under tmux/starship/boot banners.
+- **Ghostty** (`build_ghostty.py`) writes a static `title = <name>` into each
+  config. Static means it *replaces* the dynamic dir/command title.
+
+Pass `--no-titles` to either builder to keep dynamic titles instead.
+
 ## Fonts & provenance
 
 Installed to `~/Library/Fonts` (all free):
