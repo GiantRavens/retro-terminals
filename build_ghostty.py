@@ -204,10 +204,20 @@ def build_studio(dest: str) -> str:
     if os.path.exists(SHADER_SRC):
         with open(SHADER_SRC) as f:
             shader_src = f.read()
+    # Portable paths so a published config/command works on any machine, not
+    # just this one (the studio may be served publicly from GitHub Pages). Shell
+    # parts use $HOME (expands when pasted); the config's custom-shader uses ~
+    # (Ghostty expands it). A non-home --dest falls back to absolute.
+    home = os.path.expanduser("~")
+    if dest == home or dest.startswith(home + os.sep):
+        rel = os.path.relpath(dest, home)
+        shell_base, conf_shader = f"$HOME/{rel}", f"~/{rel}/shaders/crt.glsl"
+    else:
+        shell_base, conf_shader = dest, os.path.join(dest, "shaders", "crt.glsl")
     studio = {
-        "shaderPath": os.path.join(dest, "shaders", "crt.glsl"),
-        "retroDir": os.path.join(dest, "retro"),
-        "shadersDir": os.path.join(dest, "shaders"),
+        "shaderPath": conf_shader,             # -> config `custom-shader =` (Ghostty ~-expands)
+        "retroDir": f"{shell_base}/retro",     # -> shell command ("$HOME/…" on paste)
+        "shadersDir": f"{shell_base}/shaders",
     }
     html = (tmpl
             .replace("/*__PROFILES__*/", json.dumps(profiles))

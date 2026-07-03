@@ -38,6 +38,9 @@ FONTS = {
 TARGETS = {
     "index.html":         ["Terminus (TTF)", "IBM 3270", "Departure Mono", "Bedstead"],
     "crt-playground.html": ["IBM 3270", "Bedstead"],
+    # Embed into the studio TEMPLATE so fonts survive every `build_ghostty.py
+    # --studio` regeneration (the generated ghostty-studio.html copies the head).
+    "tools/studio-template.html": ["Terminus (TTF)", "IBM 3270", "Departure Mono", "Bedstead"],
 }
 
 ATTRIB = ("<!-- Embedded fonts (base64): Terminus & IBM 3270 & Departure Mono "
