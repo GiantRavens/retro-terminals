@@ -296,14 +296,14 @@ color, re-run `--studio`, reload the page. The CRT dials tune the *shared*
 `crt.glsl` — one shader for all tubes — so publishing it updates every tube;
 `screen padding` is per-profile and rewrites that profile's `window-padding`.
 
-## Status lines that follow the theme
+## Following the theme — starship, tmux, nvim
 
 ANSI palette slots **0–15 follow the active profile; the 256-cube (16–255) and
 `#hex` are fixed**. So anything drawn with a slot 0–15 (or an ANSI *name* like
 `green`) re-colors automatically when you switch profiles — the same trick that
-makes the whole palette swap live. tmux can't know *which* named profile is
-active, but it doesn't need to: build the bar from slots and it wears whatever
-the window is using.
+makes the whole palette swap live. A program can't know *which* named profile is
+active, but it doesn't need to: draw from slots and it wears whatever the window
+is using.
 
 - **Starship already follows.** `starship.toml` styles with `green` / `yellow`
   / `cyan` / `purple` — ANSI names → slots 2/3/6/5. Open any profile and the
@@ -323,6 +323,20 @@ the window is using.
   (many configs already source `~/.tmux.conf.local` at the end), then
   `tmux source-file ~/.tmux.conf`. Delete the line to revert. In Ghostty the
   same file works — the CRT shader tints the footer along with everything else.
+- **nvim doesn't either** — modern colorschemes set `termguicolors` and bake
+  24-bit hex, bypassing the ANSI palette entirely. `integration/nvim` ships a
+  `retro-ansi` colorscheme that turns `termguicolors` off and paints every
+  highlight group from slots 0–15, so the editor wears whichever profile the
+  window has (green-phosphor window → monochrome-green nvim; C64 → C64). Put the
+  dir on your runtimepath, then `:colorscheme retro-ansi`:
+
+  ```lua
+  vim.opt.rtp:append(vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"))
+  ```
+
+  Because it needs 16-color mode, it's a *mode you toggle into* for retro
+  windows, not an always-on scheme — pair it with a `:Retro` command that flips
+  `termguicolors` and swaps back to your truecolor daily driver.
 
 ## Fonts & provenance
 

@@ -139,7 +139,34 @@ Starship already follows (it styles with ANSI color *names* like `green` /
 
 ---
 
-## 6. After editing palettes
+## 6. Opt into theme-following nvim
+
+nvim with `termguicolors` bakes 24-bit hex and ignores the ANSI palette — so it
+doesn't follow the profile the way tmux/starship do. `integration/nvim` ships a
+`retro-ansi` colorscheme that turns `termguicolors` off and draws from cterm
+slots 0–15, so the editor wears whichever profile the window has (green tube →
+monochrome-green nvim; C64 → C64). Add the dir to your runtimepath and toggle:
+
+```lua
+-- init.lua
+local retro = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
+if vim.fn.isdirectory(retro) == 1 then
+  vim.opt.rtp:append(retro)
+  vim.api.nvim_create_user_command("Retro", function()
+    if vim.g.colors_name == "retro-ansi" then
+      vim.o.termguicolors = true
+      vim.cmd.colorscheme("your-truecolor-scheme")   -- back to the daily driver
+    else
+      vim.cmd.colorscheme("retro-ansi")              -- follow the terminal
+    end
+  end, { desc = "toggle retro-ansi" })
+end
+```
+
+Then `:Retro` in a retro window (or `:colorscheme retro-ansi`). It's a *mode you
+toggle into*, since following the palette requires 16-color mode.
+
+## 7. After editing palettes
 
 ```bash
 python3 build_profiles.py            # rebuild iTerm2 profiles
