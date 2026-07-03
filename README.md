@@ -1,10 +1,29 @@
 # Retro Terminals — iTerm2 profiles
 
-**30 iTerm2 profiles** in three groups — real historic machines (`retro`),
-fictional computers (`sci-fi`), and aesthetic movements (`aesthetic`) — generated
-from a declarative palette spec and installed as iTerm2 **Dynamic Profiles**.
-Each group is its own JSON file in the DynamicProfiles folder, so you can enable
-or delete a whole pack independently. Filter by the tag in the profile switcher.
+**37 iTerm2 profiles** in four groups — real historic machines (`retro`),
+fictional computers (`sci-fi`), aesthetic movements (`aesthetic`), and the
+Alien/Blade Runner megacorps (`corp`) — generated from a declarative palette spec
+and installed as iTerm2 **Dynamic Profiles**. Each group is its own JSON file in
+the DynamicProfiles folder, so you can enable or delete a whole pack
+independently. Filter by the tag in the profile switcher.
+
+## Install (build them into your iTerm2)
+
+```bash
+./install.sh              # fetch fonts + build all profiles into iTerm2
+./install.sh --no-fonts   # profiles only (fonts already present)
+```
+
+Under the hood the profiles are built by one script:
+
+```bash
+python3 build_profiles.py
+```
+
+It writes four JSON files into `~/Library/Application Support/iTerm2/DynamicProfiles/`,
+which iTerm2 **watches and hot-loads live** — no restart. Re-run it any time you
+edit a palette; open tabs restyle within a second. Then in iTerm2 press **⌘O** and
+filter by tag (`retro` / `sci-fi` / `aesthetic` / `corp`).
 
 ## What's installed — `retro` (real machines)
 
@@ -20,6 +39,7 @@ or delete a whole pack independently. Filter by the tag in the profile switcher.
 | MS-DOS Editor | Blue-screen edit.com / QBasic | IBM 3270 |
 | Amiga Workbench | Workbench 1.3 blue / white / black / orange | Departure Mono |
 | NeXTSTEP | Refined neutral-grey greyscale (1989 Terminal) | Menlo |
+| OpenStep | NeXTSTEP's 1996 near-twin — cooler, lighter grey | Menlo |
 | Apple II | Crisp green Applesoft (deliberately un-glowy) | Print Char 21 |
 | ZX Spectrum | Black ink on white paper, ULA primaries | Departure Mono \* |
 | Atari 8-bit | Cyan-blue READY screen with gold accent | Departure Mono \* |
@@ -43,6 +63,7 @@ freely hosted. The palette does the identifying work.
 | Blade Runner | Esper amber + teal, smoky |
 | WOPR | NORAD radar blue — *shall we play a game?* |
 | Outrun | Synthwave hot-pink + cyan on deep purple |
+| LCARS | Star Trek panel palette — orange / gold / mauve / blue on black |
 
 ## `aesthetic` (genre movements)
 
@@ -54,8 +75,31 @@ freely hosted. The palette does the identifying work.
 | Vaporwave | Pastel pink / cyan / lilac on purple |
 | Atompunk | Mid-century cream, atomic-coral + turquoise (light) |
 
-The `sci-fi` and `aesthetic` packs get boot banners too, and matching `retro`
-prompts (`retro matrix`, `retro hal`, `retro steampunk`, …).
+## `corp` (Alien + Blade Runner megacorps)
+
+The two franchises share a universe (Weyland → Tyrell), so they share a pack.
+Spread across distinct hues so they don't all read as "amber sci-fi":
+
+| Profile | Look |
+|---|---|
+| Weyland-Yutani | The Company — amber-gold CRT with green data accents |
+| MU-TH-UR 6000 | The Nostromo's MOTHER, teal-green (*interface 2037, ready for inquiry*) |
+| Seegson APOLLO | Sevastopol's budget AI — cold blue-white, red working light |
+| Tyrell Corporation | Opulent candle-gold + deep red (*more human than human*) |
+| Wallace Corporation | 2049 brutalist cold teal with one warm accent |
+| Voight-Kampff | Clinical tungsten-orange empathy-test instrument |
+
+All three notional packs get boot banners too, and matching `retro` prompts
+(`retro matrix`, `retro hal`, `retro weyland`, `retro tyrell`, `retro vk`, …).
+
+## Visual gallery & CRT playground
+
+- **Gallery** — every profile rendered in its real font: <https://claude.ai/code/artifact/04f2755b-d0e1-4b63-ab7e-4fd1812a5460>
+- **CRT playground** — a WebGL curved-glass shader (the effect iTerm can't do
+  natively): <https://claude.ai/code/artifact/754420e0-22d9-4597-aca5-1f337b08e180>
+
+The gallery links to the playground and explains how the five parts (profiles,
+banners, prompts, bezel, playground) fit together.
 
 ## How it works
 

@@ -46,6 +46,15 @@
   footer p{margin:0;color:var(--ink-dim);font-size:13px}
   kbd{background:#1b201b;border:1px solid var(--hair);border-bottom-width:2px;border-radius:4px;padding:1px 6px;font:inherit;font-size:12px;color:var(--ink)}
   code{color:var(--amber)}
+  .works{margin:24px 0 4px;padding:18px 20px;border:1px solid var(--hair);border-radius:10px;background:rgba(57,224,92,.03);display:flex;gap:22px;flex-wrap:wrap;align-items:center}
+  .works .txt{flex:1;min-width:280px;font-size:13px;color:var(--ink-dim)}
+  .works .txt b{color:var(--ink)}
+  .works ol{margin:9px 0 0;padding-left:18px}
+  .works li{margin:3px 0}
+  .works code{color:var(--amber)}
+  .btn{display:inline-block;white-space:nowrap;padding:12px 18px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);text-decoration:none;font-size:13px;letter-spacing:.04em;background:rgba(57,224,92,.06);transition:.15s}
+  .btn:hover{background:var(--accent);color:#04120a}
+  .btn .big{display:block;font-size:15px;font-weight:600;letter-spacing:.02em}
   @keyframes blink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
   @media (prefers-reduced-motion:reduce){.cur{animation:none!important}}
 </style>
@@ -54,11 +63,29 @@
   <header>
     <p class="eyebrow">iTerm2 · Dynamic Profiles</p>
     <h1>Retro Terminals<span class="cur"></span></h1>
-    <p class="lede"><b>Thirty</b> live iTerm2 profiles in three packs — real machines, fictional
-      computers, and aesthetic movements. Every card is rendered in that profile's <b>real installed
-      font and exact colors</b>. Pick one from <kbd>⌘O</kbd> and filter by tag.
-      <span style="color:var(--ink-dim)">Fonts marked <b style="color:var(--ink)">*</b> use Departure Mono — originals aren't freely hosted.</span></p>
+    <p class="lede"><b>Thirty-eight</b> live iTerm2 profiles in four packs — real machines, fictional
+      computers, aesthetic movements, and the Alien/Blade&nbsp;Runner megacorps. Every card is rendered
+      in that profile's <b>real installed font and exact colors</b>. Pick one from <kbd>⌘O</kbd> and
+      filter by tag. <span style="color:var(--ink-dim)">Fonts marked <b style="color:var(--ink)">*</b> use Departure Mono — originals aren't freely hosted.</span></p>
   </header>
+
+  <div class="works">
+    <div class="txt">
+      <b>How the kit fits together</b> — one generator (<code>build_profiles.py</code>), five moving parts:
+      <ol>
+        <li><b>Profiles</b> — palette + font + cursor, hot-loaded live by iTerm2</li>
+        <li><b>Boot banners</b> — each profile prints its startup screen (<code>Initial&nbsp;Text</code>)</li>
+        <li><b><code>retro &lt;machine&gt;</code></b> — flips your live shell prompt to match (starship-aware)</li>
+        <li><b>Scanline bezel</b> — a CRT overlay drawn behind the text on the tube profiles</li>
+        <li><b>CRT playground</b> — the browser-only part →</li>
+      </ol>
+    </div>
+    <a class="btn" href="https://claude.ai/code/artifact/754420e0-22d9-4597-aca5-1f337b08e180" target="_blank" rel="noopener">
+      <span class="big">▶ CRT Playground</span>bend text through curved glass</a>
+  </div>
+  <p class="lede" style="margin-top:12px;font-size:12.5px">The playground does the one thing iTerm can't:
+    a real WebGL curved-tube shader (barrel distortion, phosphor bloom, aperture mask). The bezel overlay
+    above is iTerm's closest native approximation — texture behind text, not text bent through glass.</p>
 
   <div id="sections"></div>
 
@@ -103,6 +130,9 @@ const M=[
  {name:"NeXTSTEP",era:"1991 · 3.3",font:"'Menlo',monospace",bg:"#E8E8E8",fg:"#141414",bold:"#000000",cur:"#000000",curType:"block",
   ansi:["#000000","#9A2E2E","#2E7A2E","#7A6A1E","#2E4A8A","#7A2E7A","#1E6E6E","#4A4A4A","#7A7A7A","#C04040","#40A040","#A08A20","#4060C0","#A040A0","#30A0A0","#141414"],
   meta:["Menlo","block","neutral greyscale"],s:["NeXTSTEP 3.3 (mach)","console login: me","next% hostname","cube","next% "]},
+ {name:"OpenStep",era:"1996 · 4.2",font:"'Menlo',monospace",bg:"#ECEDEF",fg:"#1A1A20",bold:"#000008",cur:"#000010",curType:"block",
+  ansi:["#000008","#9A2E3A","#2E7A4A","#7A6A20","#2E4A9A","#7A2E7A","#1E6E7A","#4A4A52","#7A7A82","#C04048","#40A050","#A08A24","#4060D0","#A040A8","#30A0B0","#1A1A20"],
+  meta:["Menlo","block","cooler NeXT twin"],s:["OPENSTEP 4.2 (mach)","Copyright NeXT Software, Inc.","","omega> "]},
  {name:"Apple II",era:"1977 · Applesoft",font:"'Print Char 21',monospace",bg:"#000800",fg:"#33E033",bold:"#7CFF7C",cur:"#33E033",curType:"block",
   ansi:["#002000","#009000","#00BB00","#33C000","#007000","#00A030","#00C050","#33E033","#005000","#33CC33","#66FF66","#99FF44","#00CC55","#66FF88","#99FFBB","#CCFFCC"],
   meta:["Print Char 21","block","crisp, no glow"],s:["Apple ][","","]10 PRINT \"HELLO\"","]RUN","HELLO","]"]},
@@ -151,6 +181,9 @@ const MF=[
  {name:"Outrun",era:"Synthwave · 1986",font:"'Departure Mono',monospace",bg:"#1A0A2E",fg:"#FF3C8C",bold:"#FF8CC0",cur:"#2DE2E6",curType:"block",fx:true,
   ansi:["#2A1040","#FF2D6B","#2DE2E6","#FFB03A","#7A4CFF","#FF3C8C","#43D9FF","#E0B0FF","#4A2A6A","#FF6BA0","#6BF0F0","#FFD06B","#A07CFF","#FF8CC0","#8CF0FF","#FFE0FF"],
   meta:["Departure Mono","block","hot pink + cyan"],s:["OUTRUN // 1986","","MIAMI  05:44   84F","","> DRIVE","","outrun> "]},
+ {name:"LCARS",era:"Star Trek",font:"'Menlo',monospace",bg:"#000000",fg:"#FF9900",bold:"#FFCC66",cur:"#FF9900",curType:"block",
+  ansi:["#000000","#CC6666","#66CC99","#FFCC00","#6688CC","#CC99CC","#99CCCC","#FF9900","#55442A","#FF8866","#99DDAA","#FFCC66","#99AAFF","#DDAAEE","#AADDDD","#FFCC99"],
+  meta:["Menlo","block","orange / mauve / blue"],s:["LCARS 24-ALPHA","LIBRARY COMPUTER ACCESS/RETRIEVAL","","STARFLEET COMPUTER CORE","STATE YOUR INQUIRY","","LCARS> "]},
 ];
 
 const MA=[
@@ -169,6 +202,27 @@ const MA=[
  {name:"Atompunk",era:"World of Tomorrow",font:"'Courier',monospace",bg:"#EAE3CE",fg:"#1E5A5A",bold:"#0E3A3A",cur:"#E0654C",curType:"block",
   ansi:["#20302E","#D0503A","#4C8A6A","#C08A2A","#3A7A8A","#A05A7A","#2E9A9A","#5A5A48","#7A7A68","#E0654C","#5CA87A","#D9A441","#4C9AAE","#C07A9A","#4CBABA","#1E5A5A"],
   meta:["Courier","block","atomic-age"],s:["ATOMIC ELECTRONIC BRAIN   MODEL 1959","","THE WORLD OF TOMORROW... TODAY!","","POWERED BY THE ATOM","","atom> "]},
+];
+
+const MC=[
+ {name:"Weyland-Yutani",era:"The Company",font:"'Glass TTY VT220',monospace",bg:"#0C0A04",fg:"#F5B942",bold:"#FFD97A",cur:"#F5B942",curType:"block",fx:true,
+  ansi:["#1A1206","#C85A2C","#6BA84C","#F5B942","#7A8A5C","#B08A5C","#8AB86C","#E0C88C","#4A3A18","#E07A44","#9BD86C","#FFD97A","#A8B87C","#D0A87C","#B8E098","#FFF0C8"],
+  meta:["Glass TTY VT220","block","amber + green data"],s:["WEYLAND-YUTANI CORP  -  DIVISION 12","","BUILDING BETTER WORLDS","","SPECIAL ORDER 937: CLASSIFIED","","wy> "]},
+ {name:"MU-TH-UR 6000",era:"Nostromo",font:"'Glass TTY VT220',monospace",bg:"#001208",fg:"#43E6B0",bold:"#8CFFD0",cur:"#43E6B0",curType:"block",fx:true,
+  ansi:["#002012","#2CB07A","#22C88A","#43E6B0","#1A8A66","#2CB490","#30D0A0","#43E6B0","#0A5A3C","#4CE0A8","#8CFFD0","#AEFFDE","#30C0A0","#8CFFE0","#B8FFE8","#DFFFF0"],
+  meta:["Glass TTY VT220","block","MOTHER teal-green"],s:["INTERFACE 2037","READY FOR INQUIRY","","> "]},
+ {name:"Seegson APOLLO",era:"Sevastopol",font:"'Menlo',monospace",bg:"#0A1018",fg:"#A8C8DC",bold:"#DCEAF4",cur:"#FF6A4C",curType:"block",fx:true,
+  ansi:["#0A141C","#E05A4C","#6EB0A0","#D0B060","#5A8AB0","#9A7AB0","#7AB0C8","#A8C8DC","#2A3A48","#FF7A6C","#90D0C0","#E8D090","#7AAAD0","#C0A0D0","#A0D0E4","#DCEAF4"],
+  meta:["Menlo","block","cold blue + red light"],s:["SEEGSON APOLLO","PERSONAL TERMINAL MODEL 3","","How can I help you return to work?","","apollo> "]},
+ {name:"Tyrell Corporation",era:"Nexus-6",font:"'Glass TTY VT220',monospace",bg:"#120A06",fg:"#E8C468",bold:"#FFE59A",cur:"#C03A2C",curType:"block",fx:true,
+  ansi:["#201206","#B03828","#8A8A4C","#E8C468","#7A6A4C","#A05A4C","#B0A060","#E0CC98","#4A3418","#E05A44","#C8C070","#FFE59A","#A08A5C","#C88A6C","#D8C888","#FFF4D0"],
+  meta:["Glass TTY VT220","block","gold + deep red"],s:["TYRELL CORPORATION","","MORE HUMAN THAN HUMAN","","NEXUS-6 REGISTRY","","tyrell> "]},
+ {name:"Wallace Corporation",era:"2049",font:"'Menlo',monospace",bg:"#08100F",fg:"#6FC8C0",bold:"#B8ECE6",cur:"#E0A040",curType:"block",
+  ansi:["#0A1614","#C86A5C","#5EB0A6","#D0A850","#4C8A94","#9A7A9A","#6FC8C0","#A8C4C0","#24403C","#E08A7C","#8CD8CE","#E8C878","#6CAAB4","#B89ABA","#A0E0D8","#DCF0EC"],
+  meta:["Menlo","block","cold 2049 teal"],s:["WALLACE CORPORATION","","A NEW MODEL OF PERFECTION","","> "]},
+ {name:"Voight-Kampff",era:"Empathy Test",font:"'Glass TTY VT220',monospace",bg:"#0E0704",fg:"#FF8A3C",bold:"#FFB870",cur:"#FF8A3C",curType:"block",fx:true,
+  ansi:["#1E0E04","#E0522C","#B08A4C","#FF9A48","#8A6A4C","#C0704C","#D0A060","#E8C090","#4A2A10","#FF7A44","#E0B070","#FFB870","#B08A5C","#E0906C","#F0C888","#FFE0C0"],
+  meta:["Glass TTY VT220","block","tungsten orange"],s:["VOIGHT-KAMPFF EMPATHY TEST","","SUBJECT: UNKNOWN","","You are in a desert, walking...","","vk> "]},
 ];
 
 function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -198,8 +252,9 @@ function buildCard(m){
 
 const SECTIONS=[
   {title:"Real machines", tag:"retro", sub:"Fifteen from the phosphor age — authentic palette, period font, cursor.", list:M},
-  {title:"Fictional computers", tag:"sci-fi", sub:"Ten screens from film & games — the Matrix, HAL, Neuromancer, Night City.", list:MF},
+  {title:"Fictional computers", tag:"sci-fi", sub:"Eleven screens from film & games — the Matrix, HAL, Neuromancer, LCARS, Night City.", list:MF},
   {title:"Aesthetic movements", tag:"aesthetic", sub:"Five genre looks — steampunk brass, solarpunk gardens, vaporwave pastels.", list:MA},
+  {title:"Megacorps", tag:"corp", sub:"Six from the Alien + Blade Runner universe — Weyland-Yutani, MU/TH/UR, Tyrell, Wallace.", list:MC},
 ];
 const root=document.getElementById("sections");
 for(const s of SECTIONS){

@@ -302,6 +302,22 @@ PROFILES = [
         blurb="Refined neutral-grey greyscale; the 1989 Terminal.app ancestor. Cool vs Sun's warm.",
     ),
 
+    # 10b. OPENSTEP (1996) — NeXTSTEP's near-twin, cooler & lighter -----------
+    machine(
+        "OpenStep", "Menlo", 13,
+        bg="ECEDEF", fg="1A1A20", bold="000008",
+        cursor="000010", cursor_text="ECEDEF",
+        selection="C0D0E0", selected_text="000010", link="2A4A9A",
+        cursor_type=BOX, blink=False, aa=True, bright_bold=False,
+        ansi=[
+            "000008", "9A2E3A", "2E7A4A", "7A6A20",
+            "2E4A9A", "7A2E7A", "1E6E7A", "4A4A52",
+            "7A7A82", "C04048", "40A050", "A08A24",
+            "4060D0", "A040A8", "30A0B0", "1A1A20",
+        ],
+        blurb="OPENSTEP 4.2: NeXTSTEP refined — cooler, lighter grey, bluer accent. A near-twin on purpose.",
+    ),
+
     # ---- BONUS MACHINES ----------------------------------------------------
 
     # 11. Apple II (Applesoft BASIC, crisp green — deliberately un-glowy) ------
@@ -409,6 +425,7 @@ BANNERS = {
     "Amiga Workbench":     ["AmigaDOS   Workbench 1.3",
                             "Copyright (c) 1985-1988 Commodore-Amiga, Inc."],
     "NeXTSTEP":            ["NeXTSTEP 3.3  (mach)"],
+    "OpenStep":            ["OPENSTEP 4.2  (mach)", "Copyright NeXT Software, Inc."],
     "Apple II":            ["Apple ][", ""],
     "ZX Spectrum":         ["(C) 1982 Sinclair Research Ltd", "", "0 OK, 0:1"],
     "Atari 8-bit":         ["ATARI 8-BIT COMPUTER", "MEMO PAD", "READY"],
@@ -540,6 +557,14 @@ FICTION = [
         ansi=["2A1040","FF2D6B","2DE2E6","FFB03A","7A4CFF","FF3C8C","43D9FF","E0B0FF",
               "4A2A6A","FF6BA0","6BF0F0","FFD06B","A07CFF","FF8CC0","8CF0FF","FFE0FF"],
         blurb="Miami-sunset synthwave: hot pink + cyan on deep purple."),
+
+    machine("LCARS", "Menlo", 13, ns="Sci-Fi",
+        bg="000000", fg="FF9900", bold="FFCC66", cursor="FF9900", cursor_text="000000",
+        selection="55442A", selected_text="FFCC99", link="9999FF",
+        cursor_type=BOX, blink=False, bright_bold=True,
+        ansi=["000000","CC6666","66CC99","FFCC00","6688CC","CC99CC","99CCCC","FF9900",
+              "55442A","FF8866","99DDAA","FFCC66","99AAFF","DDAAEE","AADDDD","FFCC99"],
+        blurb="Star Trek LCARS: the orange / gold / mauve / blue panel palette on black."),
 ]
 
 FBANNERS = {
@@ -557,6 +582,8 @@ FBANNERS = {
     "Blade Runner":     ["ESPER   -   TYRELL CORP", "ENHANCE 224 TO 176", "More human than human."],
     "WOPR":             ["GREETINGS PROFESSOR FALKEN.", "", "SHALL WE PLAY A GAME?"],
     "Outrun":           ["OUTRUN // 1986", "MIAMI  05:44   84F", "> DRIVE"],
+    "LCARS":            ["LCARS 24-ALPHA", "LIBRARY COMPUTER ACCESS / RETRIEVAL SYSTEM",
+                         "", "STARFLEET COMPUTER CORE  -  STATE YOUR INQUIRY"],
 }
 
 FTUBES = {"The Matrix", "TRON", "HAL 9000", "Fallout Pip-Boy", "Blade Runner", "WOPR"}
@@ -621,6 +648,81 @@ ABANNERS = {
 }
 
 
+# ===========================================================================
+# MEGACORPS  --  the Alien + Blade Runner shared universe (ns="Corp", "corp")
+# ===========================================================================
+
+CORP = [
+    machine("Weyland-Yutani", "Glass TTY VT220", 18, ns="Corp",
+        bg="0C0A04", fg="F5B942", bold="FFD97A", cursor="F5B942", cursor_text="0C0A04",
+        selection="4A3A18", selected_text="FFF0C8", link="9BD86C",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.8,
+        ansi=["1A1206","C85A2C","6BA84C","F5B942","7A8A5C","B08A5C","8AB86C","E0C88C",
+              "4A3A18","E07A44","9BD86C","FFD97A","A8B87C","D0A87C","B8E098","FFF0C8"],
+        blurb="The Company: amber-gold CRT with green data accents. Building Better Worlds."),
+
+    machine("MU-TH-UR 6000", "Glass TTY VT220", 18, ns="Corp",
+        bg="001208", fg="43E6B0", bold="8CFFD0", cursor="43E6B0", cursor_text="001208",
+        selection="0A5A3C", selected_text="DFFFF0", link="8CFFE0",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.6, vspacing=1.05,
+        ansi=["002012","2CB07A","22C88A","43E6B0","1A8A66","2CB490","30D0A0","43E6B0",
+              "0A5A3C","4CE0A8","8CFFD0","AEFFDE","30C0A0","8CFFE0","B8FFE8","DFFFF0"],
+        blurb="MOTHER, the Nostromo's teal-green interface. Interface 2037 ready for inquiry."),
+
+    machine("Seegson APOLLO", "Menlo", 13, ns="Corp",
+        bg="0A1018", fg="A8C8DC", bold="DCEAF4", cursor="FF6A4C", cursor_text="0A1018",
+        selection="2A3A48", selected_text="DCEAF4", link="7AAAD0",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.04, blur=True, blur_radius=1.2,
+        ansi=["0A141C","E05A4C","6EB0A0","D0B060","5A8AB0","9A7AB0","7AB0C8","A8C8DC",
+              "2A3A48","FF7A6C","90D0C0","E8D090","7AAAD0","C0A0D0","A0D0E4","DCEAF4"],
+        blurb="Sevastopol's budget AI: cold blue-white with a red working light."),
+
+    machine("Tyrell Corporation", "Glass TTY VT220", 18, ns="Corp",
+        bg="120A06", fg="E8C468", bold="FFE59A", cursor="C03A2C", cursor_text="120A06",
+        selection="4A3418", selected_text="FFF4D0", link="C8C070",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.8,
+        ansi=["201206","B03828","8A8A4C","E8C468","7A6A4C","A05A4C","B0A060","E0CC98",
+              "4A3418","E05A44","C8C070","FFE59A","A08A5C","C88A6C","D8C888","FFF4D0"],
+        blurb="Opulent candle-gold + deep red. More human than human."),
+
+    machine("Wallace Corporation", "Menlo", 13, ns="Corp",
+        bg="08100F", fg="6FC8C0", bold="B8ECE6", cursor="E0A040", cursor_text="08100F",
+        selection="24403C", selected_text="DCF0EC", link="8CD8CE",
+        cursor_type=BOX, blink=False, bright_bold=True,
+        ansi=["0A1614","C86A5C","5EB0A6","D0A850","4C8A94","9A7A9A","6FC8C0","A8C4C0",
+              "24403C","E08A7C","8CD8CE","E8C878","6CAAB4","B89ABA","A0E0D8","DCF0EC"],
+        blurb="2049 brutalist cold teal with a single warm accent. A new model of perfection."),
+
+    machine("Voight-Kampff", "Glass TTY VT220", 18, ns="Corp",
+        bg="0E0704", fg="FF8A3C", bold="FFB870", cursor="FF8A3C", cursor_text="0E0704",
+        selection="4A2A10", selected_text="FFE0C0", link="F0C888",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.8,
+        ansi=["1E0E04","E0522C","B08A4C","FF9A48","8A6A4C","C0704C","D0A060","E8C090",
+              "4A2A10","FF7A44","E0B070","FFB870","B08A5C","E0906C","F0C888","FFE0C0"],
+        blurb="Clinical tungsten-orange empathy-test instrument."),
+]
+
+CBANNERS = {
+    "Weyland-Yutani":      ["WEYLAND-YUTANI CORP   -   DIVISION 12", "BUILDING BETTER WORLDS",
+                            "", "SPECIAL ORDER 937: CLASSIFIED"],
+    "MU-TH-UR 6000":       ["INTERFACE 2037", "READY FOR INQUIRY"],
+    "Seegson APOLLO":      ["SEEGSON APOLLO", "PERSONAL TERMINAL MODEL 3",
+                            "", "How can I help you return to work?"],
+    "Tyrell Corporation":  ["TYRELL CORPORATION", "MORE HUMAN THAN HUMAN", "", "NEXUS-6 REGISTRY"],
+    "Wallace Corporation": ["WALLACE CORPORATION", "A NEW MODEL OF PERFECTION"],
+    "Voight-Kampff":       ["VOIGHT-KAMPFF EMPATHY TEST", "SUBJECT: UNKNOWN",
+                            "", "You are in a desert, walking along in the sand..."],
+}
+
+CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "Seegson APOLLO",
+          "Tyrell Corporation", "Voight-Kampff"}
+
+
 # ---------------------------------------------------------------------------
 # Attach banners + bezels to the notional packs
 # ---------------------------------------------------------------------------
@@ -638,6 +740,7 @@ def _attach(profiles, prefix, banners, tubes):
 
 _attach(FICTION,   "Sci-Fi · ",    FBANNERS, FTUBES)
 _attach(AESTHETIC, "Aesthetic · ", ABANNERS, set())
+_attach(CORP,      "Corp · ",      CBANNERS, CTUBES)
 
 
 # ---------------------------------------------------------------------------
@@ -655,7 +758,7 @@ def _write(dest_dir, filename, profiles):
 
 def main():
     if "--stdout" in sys.argv:
-        print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC}, indent=2))
+        print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC + CORP}, indent=2))
         return
     dest_dir = os.path.expanduser(
         "~/Library/Application Support/iTerm2/DynamicProfiles"
@@ -664,8 +767,10 @@ def main():
     _write(dest_dir, "retro-terminals.json", PROFILES)
     _write(dest_dir, "fictional-terminals.json", FICTION)
     _write(dest_dir, "aesthetic-terminals.json", AESTHETIC)
-    print(f"\nTotal: {len(PROFILES) + len(FICTION) + len(AESTHETIC)} profiles "
-          f"in 3 groups (retro / sci-fi / aesthetic).")
+    _write(dest_dir, "corp-terminals.json", CORP)
+    total = len(PROFILES) + len(FICTION) + len(AESTHETIC) + len(CORP)
+    print(f"\nTotal: {total} profiles in 4 groups "
+          f"(retro / sci-fi / aesthetic / corp).")
 
 
 if __name__ == "__main__":

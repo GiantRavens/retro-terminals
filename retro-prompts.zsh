@@ -44,6 +44,7 @@ typeset -gA _RETRO_PROMPTS=(
   bladerunner '%F{215}esper> %f'
   wopr        '%F{45}WOPR> %f'
   outrun      '%F{205}outrun> %f'
+  lcars       '%F{208}LCARS> %f'
 
   # --- aesthetic movements ---
   steampunk   '%F{179}aether> %f'
@@ -51,6 +52,15 @@ typeset -gA _RETRO_PROMPTS=(
   dieselpunk  '%F{137}works> %f'
   vaporwave   '%F{159}vapor> %f'
   atompunk    '%F{30}atom> %f'
+
+  # --- Alien / Blade Runner megacorps ---
+  openstep    '%F{246}openstep%% %f'
+  weyland     '%F{179}wy> %f'
+  mother      '%F{43}MU/TH/UR> %f'
+  apollo      '%F{75}APOLLO> %f'
+  tyrell      '%F{179}tyrell> %f'
+  wallace     '%F{80}wallace> %f'
+  vk          '%F{208}V-K> %f'
 )
 
 typeset -ga _retro_saved_precmd
