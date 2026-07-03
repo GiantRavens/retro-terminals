@@ -193,7 +193,7 @@ overwritten by starship's `precmd` hook, and `ITERM_PROFILE` is stale inside
 tmux. So prompts are a command you run, not per-profile magic:
 
 ```bash
-source ~/Desktop/notebook/code/retro-terminals/retro-prompts.zsh   # once (or add to ~/.zshrc)
+source /path/to/retro-terminals/retro-prompts.zsh   # once (or add to ~/.zshrc)
 retro c64      # READY.        retro amiga   # 1>
 retro dos      # C:\>          retro irix    # indy 1%
 retro apple2   # ]             retro off     # back to starship
@@ -305,6 +305,9 @@ makes the whole palette swap live. A program can't know *which* named profile is
 active, but it doesn't need to: draw from slots and it wears whatever the window
 is using.
 
+> Paths below use `/path/to/retro-terminals` — substitute wherever you cloned
+> this repo.
+
 - **Starship already follows.** `starship.toml` styles with `green` / `yellow`
   / `cyan` / `purple` — ANSI names → slots 2/3/6/5. Open any profile and the
   prompt is already wearing its colors. (Monochrome tubes render a monochrome
@@ -316,7 +319,7 @@ is using.
   tracks the profile. Enable by sourcing it *after* your own status block:
 
   ```bash
-  source-file ~/Desktop/notebook/code/retro-terminals/integration/tmux-retro-status.conf
+  source-file /path/to/retro-terminals/integration/tmux-retro-status.conf
   ```
 
   On a multi-machine setup, put that line in a non-synced machine-local include
@@ -331,14 +334,14 @@ is using.
   green nvim; C64 → C64). Point your runtimepath at it — with lazy.nvim:
 
   ```lua
-  { dir = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"),
+  { dir = vim.fn.expand("/path/to/retro-terminals/integration/nvim"),
     name = "retro-ansi", lazy = false, priority = 900 }
   ```
 
   or without a plugin manager:
 
   ```lua
-  local d = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
+  local d = vim.fn.expand("/path/to/retro-terminals/integration/nvim")
   vim.opt.rtp:append(d)                     -- expose colors/retro-ansi.lua
   vim.cmd.source(d .. "/plugin/retro.lua")  -- define :Retro
   ```

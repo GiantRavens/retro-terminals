@@ -7,6 +7,9 @@ profiles, browse/tune/publish in the studio, and opt into theme-following tmux.
 Everything is single-sourced from `build_profiles.py` — the same 39 palettes the
 iTerm2 profiles use. Edit a color once, rebuild, both backends agree.
 
+> Paths in this doc use `/path/to/retro-terminals` — substitute wherever you
+> cloned this repo.
+
 ---
 
 ## 1. One-time setup
@@ -124,7 +127,7 @@ this box only (many configs already source `~/.tmux.conf.local` at the end):
 
 ```bash
 # ~/.tmux.conf.local
-source-file ~/Desktop/notebook/code/retro-terminals/integration/tmux-retro-status.conf
+source-file /path/to/retro-terminals/integration/tmux-retro-status.conf
 ```
 
 Apply it now, and revert any time:
@@ -150,7 +153,7 @@ profile the window has (green tube → monochrome-green nvim; C64 → C64).
 Install — with **lazy.nvim**, add a local `dir` spec:
 
 ```lua
-{ dir = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim"),
+{ dir = vim.fn.expand("/path/to/retro-terminals/integration/nvim"),
   name = "retro-ansi", lazy = false, priority = 900 }
 ```
 
@@ -158,7 +161,7 @@ or **without a plugin manager**, put the dir on the runtimepath and source the
 command:
 
 ```lua
-local d = vim.fn.expand("~/Desktop/notebook/code/retro-terminals/integration/nvim")
+local d = vim.fn.expand("/path/to/retro-terminals/integration/nvim")
 vim.opt.rtp:append(d)                     -- expose colors/retro-ansi.lua
 vim.cmd.source(d .. "/plugin/retro.lua")  -- define :Retro
 ```
