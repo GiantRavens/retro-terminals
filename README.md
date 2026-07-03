@@ -7,6 +7,15 @@ and installed as iTerm2 **Dynamic Profiles**. Each group is its own JSON file in
 the DynamicProfiles folder, so you can enable or delete a whole pack
 independently. Filter by the tag in the profile switcher.
 
+### ▶ Live demo
+
+**[Profile gallery](https://giantravens.github.io/retro-terminals/)** ·
+**[CRT playground](https://giantravens.github.io/retro-terminals/crt-playground.html)**
+
+The gallery renders every profile in its real font (the OFL/public-domain fonts
+are embedded, so they show for everyone; the rest need a local install). The
+playground is a live WebGL curved-glass CRT.
+
 ## Install (build them into your iTerm2)
 
 ```bash
@@ -103,9 +112,11 @@ Hosted on GitHub Pages (public, shareable):
   natively): <https://giantravens.github.io/retro-terminals/crt-playground.html>
 
 The gallery links to the playground and explains how the five parts (profiles,
-banners, prompts, bezel, playground) fit together. It renders each card in that
-profile's real font — install them with `./fonts/install-fonts.sh` for full
-fidelity; without them it falls back to your default monospace.
+banners, prompts, bezel, playground) fit together. The four OFL/public-domain
+fonts (Terminus, IBM 3270, Departure Mono, Bedstead) are **embedded as base64**
+(`tools/embed-fonts.py`), so those cards render for any visitor. Glass TTY VT220,
+C64 Pro Mono and the Apple/Kreative faces aren't bundled (redistribution terms) —
+those cards fall back to monospace unless you `./fonts/install-fonts.sh` locally.
 
 ## How it works
 
