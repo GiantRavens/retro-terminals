@@ -243,6 +243,24 @@ retro() {
   _retro_active=1
 }
 
+# Open a file in the OS default app (macOS `open`, Linux `xdg-open`).
+_retro_open() {
+  if command -v open >/dev/null 2>&1; then open "$1"
+  elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$1"
+  else print -r -- "retro: open it manually -> $1"; fi
+}
+
+# retro-studio — the CRT tuner: browse all 39 machines, drag the CRT dials, and
+# publish a profile. Opens the committed studio; rebuilds it first if missing.
+retro-studio() {
+  local f="$_RETRO_DIR/ghostty-studio.html"
+  [[ -r "$f" ]] || ( cd "$_RETRO_DIR" && python3 build_ghostty.py --studio >/dev/null 2>&1 )
+  _retro_open "$f"
+}
+
+# retro-crt — the pure curved-glass CRT playground (no machine browser).
+retro-crt() { _retro_open "$_RETRO_DIR/crt-playground.html"; }
+
 # tab-completion: `retro <TAB>` lists the machines
 _retro() { compadd random off ${(k)_RETRO_PROMPTS} ${(k)_RETRO_BG}; }
 compdef _retro retro 2>/dev/null
