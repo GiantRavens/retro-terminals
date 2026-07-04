@@ -89,6 +89,17 @@ def parse_font(normal_font: str):
     return family, size
 
 
+def portable(dest: str):
+    """(shell_base, conf_shader) for `dest`: $HOME / ~ forms when under $HOME, so
+    generated launchers and published configs work on ANY machine (Mac or Linux),
+    not just the one that built them. A non-home --dest falls back to absolute."""
+    home = os.path.expanduser("~")
+    if dest == home or dest.startswith(home + os.sep):
+        rel = os.path.relpath(dest, home)
+        return f"$HOME/{rel}", f"~/{rel}/shaders/crt.glsl"
+    return dest, os.path.join(dest, "shaders", "crt.glsl")
+
+
 def color_lines(p: dict) -> list:
     L = [f"palette = {i}={to_hex(p[f'Ansi {i} Color'])}" for i in range(16)]
     L += [
@@ -212,16 +223,9 @@ def build_studio(dest: str) -> str:
     if os.path.exists(SHADER_SRC):
         with open(SHADER_SRC) as f:
             shader_src = f.read()
-    # Portable paths so a published config/command works on any machine, not
-    # just this one (the studio may be served publicly from GitHub Pages). Shell
-    # parts use $HOME (expands when pasted); the config's custom-shader uses ~
-    # (Ghostty expands it). A non-home --dest falls back to absolute.
-    home = os.path.expanduser("~")
-    if dest == home or dest.startswith(home + os.sep):
-        rel = os.path.relpath(dest, home)
-        shell_base, conf_shader = f"$HOME/{rel}", f"~/{rel}/shaders/crt.glsl"
-    else:
-        shell_base, conf_shader = dest, os.path.join(dest, "shaders", "crt.glsl")
+    # Portable $HOME / ~ paths so a published config/command works on any machine
+    # (see portable()). Shell parts use $HOME; the config custom-shader uses ~.
+    shell_base, conf_shader = portable(dest)
     studio = {
         "shaderPath": conf_shader,             # -> config `custom-shader =` (Ghostty ~-expands)
         "retroDir": f"{shell_base}/retro",     # -> shell command ("$HOME/…" on paste)
@@ -274,7 +278,8 @@ def main():
         out = build_studio(dest)
         n = sum(len(g) for g, _ in GROUPS)
         print(f"Wrote studio -> {out}  ({n} profiles, shader paths -> {dest})")
-        print(f"Open it:  open {out}")
+        opener = "open" if sys.platform == "darwin" else "xdg-open"
+        print(f"Open it:  {opener} {out}")
         return
 
     themes_dir = os.path.join(dest, "themes")
@@ -283,10 +288,20 @@ def main():
     os.makedirs(retro_dir, exist_ok=True)
     shader_path = write_shader(dest)
 
+    launch_base = portable(dest)[0]   # $HOME/.config/ghostty (or absolute --dest)
     aliases = [
-        "# retro-terminals launchers (macOS). Source from your ~/.zshrc:",
-        f"#   source {os.path.join(retro_dir, 'aliases.sh')}",
-        "# Each opens a NEW Ghostty window fully styled as that machine.",
+        "# retro-terminals launchers. Source from your ~/.zshrc:",
+        f"#   source {launch_base}/retro/aliases.sh",
+        "# Opens a NEW Ghostty window styled as that machine. Cross-platform:",
+        "# macOS uses `open`; Linux/BSD run `ghostty` directly.",
+        "",
+        "_retro_ghostty() {",
+        '  if [ "$(uname)" = "Darwin" ]; then',
+        '    open -na Ghostty --args --config-file="$1"',
+        "  else",
+        '    ghostty --config-file="$1" &',
+        "  fi",
+        "}",
         "",
     ]
 
@@ -306,7 +321,7 @@ def main():
 
             fn = "ghostty-" + kebab(base)
             aliases.append(
-                f'{fn}() {{ open -na Ghostty --args --config-file="{cfg_path}"; }}'
+                f'{fn}() {{ _retro_ghostty "{launch_base}/retro/{slug}"; }}'
                 f'  # {p["Name"]}'
             )
 
@@ -321,8 +336,11 @@ def main():
     print(f"  themes/   {total} color-only themes  ->  `theme = <slug>`")
     print(f"  retro/    {total} full configs        ->  ghostty --config-file=retro/<slug>")
     print(f"  shaders/crt.glsl, retro/aliases.sh")
-    print("\nTry one:  open -na Ghostty --args "
-          f'--config-file="{os.path.join(retro_dir, "sci-fi-the-matrix")}"')
+    example = os.path.join(retro_dir, "sci-fi-the-matrix")
+    if sys.platform == "darwin":
+        print(f'\nTry one:  open -na Ghostty --args --config-file="{example}"')
+    else:
+        print(f'\nTry one:  ghostty --config-file="{example}" &')
 
 
 if __name__ == "__main__":

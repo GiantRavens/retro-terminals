@@ -380,8 +380,10 @@ function publishCmd(){
   let cmd=`mkdir -p "${STUDIO.retroDir}" "${STUDIO.shadersDir}" && `
     +`cat > "${cfgPath}" <<'GHOSTTY_EOF'\n${cfg}\nGHOSTTY_EOF`;
   if(crtOn) cmd+=`\ncat > "${STUDIO.shadersDir}/crt.glsl" <<'GHOSTTY_EOF'\n${tweakedShader()}\nGHOSTTY_EOF`;
-  // open a NEW window wearing this profile — a running window keeps its launch look
-  cmd+=`\nopen -na Ghostty --args --config-file="${cfgPath}"`;
+  // open a NEW window wearing this profile — a running window keeps its launch
+  // look. Cross-platform: macOS `open`, Linux/BSD run `ghostty` directly.
+  cmd+=`\ncase "$(uname)" in Darwin) open -na Ghostty --args --config-file="${cfgPath}" ;;`
+     +` *) ghostty --config-file="${cfgPath}" & ;; esac`;
   cmd+=`\necho '✓ published ${slug} — opened a window wearing it'`;
   return cmd;
 }

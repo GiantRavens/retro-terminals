@@ -27,7 +27,7 @@ python3 build_ghostty.py             # write themes + configs + shader into ~/.c
 | `themes/<slug>` | colors only — `theme = <slug>` or `ghostty +list-themes` |
 | `retro/<slug>` | full self-contained config (colors + font + window + CRT shader) |
 | `shaders/crt.glsl` | the shared CRT shader (the 17 tube profiles reference it) |
-| `retro/aliases.sh` | one `ghostty-<name>` launcher per profile |
+| `retro/aliases.sh` | one `ghostty-<name>` launcher per profile (macOS + Linux) |
 
 Flags: `python3 build_ghostty.py --stdout` previews one config without writing;
 `--dest DIR` writes somewhere else; `--no-titles` skips pinning the machine name

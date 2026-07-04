@@ -238,8 +238,9 @@ It emits:
   `ghostty --config-file=~/.config/ghostty/retro/<slug>`.
 - `shaders/crt.glsl` — the CRT fragment shader (`shaders/crt.glsl` in this
   repo), attached to the same 17 "tube" machines that got the iTerm2 bezel.
-- `retro/aliases.sh` — a `ghostty-<name>` launcher per profile (macOS
-  `open -na Ghostty …`). `source` it from your `~/.zshrc`.
+- `retro/aliases.sh` — a `ghostty-<name>` launcher per profile, cross-platform
+  (macOS `open`, Linux/BSD `ghostty`; picked at runtime via `uname`). `source`
+  it from your `~/.zshrc`.
 
 ```bash
 brew install --cask ghostty        # if you don't have it yet
