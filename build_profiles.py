@@ -55,6 +55,27 @@ def color(hexstr: str) -> dict:
 UNDERLINE, VBAR, BOX = 0, 1, 2
 
 
+# Per-font baseline leading. iTerm2's cell height = font natural line height x
+# Vertical Spacing, and these fonts differ wildly in built-in leading (CoreText
+# line-height / point-size, measured 2026-07-04):
+#   C64 Pro Mono / Print Char 21 / Bedstead / Courier  1.00  (zero leading —
+#     faithful 8x8 character-ROM conversions; rows touch at vspacing 1.0)
+#   Glass TTY VT220 1.04   Terminus/IBM 3270 1.09
+#   Menlo 1.16   Departure Mono 1.27  (comfortable as-is)
+# This map normalizes every font toward a ~1.15-1.20 effective cell ratio.
+# A profile's explicit vspacing= is an EXTRA multiplier on this baseline
+# (so the CRT tube bumps stack on top instead of being swallowed).
+FONT_LEADING = {
+    "Courier": 1.18,
+    "C64 Pro Mono": 1.18,
+    "Print Char 21": 1.18,
+    "Bedstead": 1.18,
+    "Glass TTY VT220": 1.12,
+    "Terminus (TTF)": 1.08,
+    "IBM 3270": 1.08,
+}
+
+
 def machine(
     name,
     font,
@@ -76,7 +97,7 @@ def machine(
     transparency=0.0,
     blur=False,
     blur_radius=2.0,
-    vspacing=1.0,
+    vspacing=1.0,       # extra multiplier on the font's FONT_LEADING baseline
     hspacing=1.0,
     tab=None,           # optional tab-color accent hex
     blurb="",           # human note, dropped into a comment sibling file
@@ -104,7 +125,7 @@ def machine(
         "Use Bold Font": True,
         "Use Italic Font": True,
         "Horizontal Spacing": hspacing,
-        "Vertical Spacing": vspacing,
+        "Vertical Spacing": round(FONT_LEADING.get(font, 1.0) * vspacing, 3),
         "Draw Powerline Glyphs": False,
         # --- cursor ---
         "Cursor Type": cursor_type,
