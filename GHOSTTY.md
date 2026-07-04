@@ -189,3 +189,15 @@ python3 build_ghostty.py --studio    # refresh the studio page
 
 Both backends stay in lockstep because they compile the same `build_profiles.py`
 SPEC — `build_ghostty.py` imports it rather than copying it.
+
+---
+
+## nvim, wearing the machine
+
+![nvim in retro-ansi inside a green-phosphor Ghostty tube](assets/nvim-retro-ansi.png)
+
+`:Retro` in a green-phosphor window (§6) — nvim drops to 16-color mode and draws
+its syntax highlighting from the terminal's ANSI palette, so the editor goes
+monochrome phosphor green, curved glass, scanlines, and all. The same file in a
+C64 or amber window would wear that machine's palette instead. Terminal, status
+bar, prompt, and editor, one tube.
