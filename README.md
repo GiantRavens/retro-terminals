@@ -186,7 +186,13 @@ The open tabs restyle within a second. Useful knobs per machine:
   3270, Departure) crisp; **True** for outline fonts (Courier, Menlo)
 - `transparency`, `blur`, `blur_radius`: the CRT glow approximation
 - `min_contrast`: floor on text/background contrast (bump for readability)
-- `vspacing` / `hspacing`: line/char spacing (a hair of `vspacing` fakes scanline gaps)
+- `vspacing` / `hspacing`: line/char spacing. `vspacing` multiplies a per-font
+  baseline (`FONT_LEADING`) that already compensates for the zero-leading
+  character-ROM fonts — so `1.05` always means "5% extra," whatever the font
+  (a hair of it fakes scanline gaps)
+- `symbols`: Nerd Font fallback for non-ASCII (file icons in Neo-tree, lualine,
+  any TUI). On by default; the builder sizes `SymbolsNFM` to the machine font's
+  measured cell width (`FONT_CELL_EM`) so icons stay inside one cell
 
 ### Want "pure" vs "daily" variants?
 
@@ -370,6 +376,14 @@ is using.
   `retro-ansi` (16-color mode), and `:Retro` again restores exactly what you had.
   It's a mode you toggle into, since following the palette needs 16-color mode.
 
+  **File icons** (Neo-tree, devicons) work out of the box: the retro fonts are
+  character-ROM conversions with no icon glyphs, so every iTerm2 profile carries
+  a Symbols Nerd Font fallback for non-ASCII, sized to the machine font's cell
+  width (Ghostty ships its own fallback natively). Prefer a terminal that never
+  drew a folder in its life? `require("retro.icons").neotree` is an opt-in
+  Neo-tree opts fragment with pure-ASCII `+`/`-` folders and single-letter git
+  symbols — usage in `integration/nvim/lua/retro/icons.lua`.
+
 ## Window titles
 
 Both backends pin the **machine name** in the window/tab title by default, so a
@@ -394,6 +408,8 @@ Installed to `~/Library/Fonts` (all free):
 - **Terminus (TTF)** — `brew install --cask font-terminus` (OFL)
 - **IBM 3270** — `brew install --cask font-3270` (OFL)
 - **Departure Mono** — `brew install --cask font-departure-mono` (OFL)
+- **Symbols Nerd Font Mono** — `brew install --cask font-symbols-only-nerd-font`
+  (MIT) — icons-only non-ASCII fallback (nvim devicons etc.), all profiles
 - **Courier / Menlo** — macOS system fonts
 
 ## Notes on fidelity

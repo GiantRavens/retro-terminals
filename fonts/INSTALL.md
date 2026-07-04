@@ -13,10 +13,12 @@ themselves are **not** committed to this repo — run `./fonts/install-fonts.sh`
 | Terminus (TTF) | Linux Console | `brew install --cask font-terminus` | OFL |
 | IBM 3270 | MS-DOS, WOPR, Dieselpunk | `brew install --cask font-3270` | OFL |
 | Departure Mono | Amiga, ZX*, Atari*, Cyberpunk, Outrun, Vaporwave | `brew install --cask font-departure-mono` | OFL |
+| Symbols Nerd Font Mono | all (non-ASCII fallback: nvim devicons, Neo-tree, any TUI icons) | `brew install --cask font-symbols-only-nerd-font` | MIT |
 | Courier / Menlo | Paper, Sun, IRIX, NeXT, OpenStep, Plan 9, Steampunk, Atompunk, Seegson, Wallace | macOS system | — |
 
 \* ZX Spectrum and Atari fall back to Departure Mono — their authentic fonts
 aren't freely hosted. The palette carries the identity.
 
 Font family names must match exactly in `build_profiles.py` (e.g. `Terminus (TTF)`,
-`Glass TTY VT220`), or iTerm2 silently substitutes a default.
+`Glass TTY VT220`), or iTerm2 silently substitutes a default. The symbols
+fallback is referenced by its PostScript name, `SymbolsNFM`.
