@@ -496,8 +496,12 @@ BANNERS = {
 
 
 def initial_text(lines):
+    # NOTE: iTerm2 auto-appends a newline to "Initial Text" when it sends it at
+    # session start, which submits the command. Do NOT add a trailing "\n" here
+    # or you get TWO newlines -> the banner command runs, then an empty command
+    # runs, and the shell draws its prompt twice (the classic double-prompt).
     quoted = " ".join("'" + ln + "'" for ln in lines)
-    return "clear; printf '%s\\n' " + quoted + "\n"
+    return "clear; printf '%s\\n' " + quoted
 
 
 for _p in PROFILES:
