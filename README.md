@@ -1,9 +1,10 @@
-# Retro Terminals — iTerm2 profiles (and a Ghostty CRT port)
+# Retro Terminals — retro themes for iTerm2, Ghostty & nvim
 
-**39 terminal palettes** in four groups — real historic machines (`retro`),
-fictional computers (`sci-fi`), aesthetic movements (`aesthetic`), and the
-Alien/Blade Runner megacorps (`corp`) — generated from one declarative palette
-spec. That single spec compiles to **two backends**:
+**39 retro terminal themes** — real historic machines (`retro`: VT220 green
+phosphor, C64, Amiga…), fictional computers (`sci-fi`: HAL, TRON, Pip-Boy…),
+aesthetic movements (`aesthetic`: vaporwave, steampunk…), and the Alien/Blade
+Runner megacorps (`corp`) — for **iTerm2 or Ghostty**, driven from one
+declarative palette spec:
 
 - **iTerm2** (`build_profiles.py`) — the daily driver. 39 Dynamic Profiles,
   boot banners, matching prompts, and a static scanline bezel. Unlimited
@@ -12,9 +13,13 @@ spec. That single spec compiles to **two backends**:
   configs, plus a **real GPU CRT shader** (curvature, scanlines, chromatic
   aberration, bloom) on the 17 "tube" machines. The effect iTerm2 can't do.
 
-The palettes live in `build_profiles.py`; Ghostty's builder **imports** that
-spec rather than copying it, so the two backends never drift. Edit a hex value
-once, rebuild both.
+And it doesn't stop at the terminal window: **nvim follows the theme too** (a
+`retro-ansi` colorscheme + `:Retro` toggle), and so do **tmux** and **starship**
+— so your whole workspace wears the machine, editor and all. Pick a green tube
+and the terminal, status bar, prompt, and editor all go phosphor green.
+
+The palettes live in `build_profiles.py`; the Ghostty builder **imports** that
+spec rather than copying it, so nothing drifts. Edit a hex value once, rebuild.
 
 ### ▶ Live demo
 
