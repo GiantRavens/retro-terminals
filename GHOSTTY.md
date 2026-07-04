@@ -27,7 +27,7 @@ python3 build_ghostty.py             # write themes + configs + shader into ~/.c
 | `themes/<slug>` | colors only — `theme = <slug>` or `ghostty +list-themes` |
 | `retro/<slug>` | full self-contained config (colors + font + window + CRT shader) |
 | `shaders/crt.glsl` | the shared CRT shader (the 17 tube profiles reference it) |
-| `retro/aliases.sh` | one `ghostty-<name>` launcher per profile (macOS + Linux) |
+| `retro/aliases.sh` | a `ghostty-<name>` launcher per profile, plus `ghostty-random` (macOS + Linux) |
 
 Flags: `python3 build_ghostty.py --stdout` previews one config without writing;
 `--dest DIR` writes somewhere else; `--no-titles` skips pinning the machine name
@@ -41,17 +41,22 @@ component, which the shell can't override); `--no-titles` there too.
 
 ---
 
-## 2. Wear a profile
+## 2. Wear a machine
 
 Ghostty has **no profile picker** — one window = one look, chosen at launch.
 Three ways to choose:
 
-**a. Launch a window as a machine** (closest to iTerm2's picker):
+**a. Launch a window as a machine** (the everyday path):
 
 ```bash
 source ~/.config/ghostty/retro/aliases.sh   # once (or add to ~/.zshrc)
-ghostty-the-matrix                           # ghostty-crt-amber-phosphor, ghostty-hal-9000, …
+ghostty-hal-9000     # a specific machine — ghostty-tron, ghostty-crt-amber-phosphor, …
+ghostty-random       # roll the dice: a random machine, full font + CRT
 ```
+
+Each opens a **new Ghostty instance** wearing that machine (colors + font + CRT
+shader + title) and **boots** it — banner, period prompt, ENTER gate. See §3 for
+the boot screen and the one-instance-per-machine model.
 
 **b. Make one your everyday default** — create `~/.config/ghostty/config`:
 
@@ -75,7 +80,65 @@ then reload with **⌘⇧,**.
 
 ---
 
-## 3. Browse, tune, publish — the studio
+## 3. The boot screen and the launch model
+
+`ghostty-<machine>` and `ghostty-random` don't just recolor — they **boot** the
+window like a period machine: the ASCII banner, a gallery-style spec line
+(`Sci-Fi · HAL 9000 · 2001`), the era-correct prompt (`HAL>`), then it **holds
+for you to press ENTER** before dropping to the shell. That pause is the point —
+the startup screen no longer flashes past.
+
+The prompt and banner are driven by the shell side; wire it once:
+
+```bash
+# ~/.zshrc (or a machine-local ~/.zshrc.local sourced BEFORE your tmux autostart,
+# so the boot lands inside the first tmux pane instead of being wiped by it)
+source /path/to/retro-terminals/retro-prompts.zsh
+source ~/.config/ghostty/retro/aliases.sh
+```
+
+| Toggle | Effect |
+|---|---|
+| `RETRO_BOOT_WAIT=0` | skip the ENTER gate — straight to the prompt |
+| `RETRO_BANNER_DIR=DIR` | where paste-your-own banners live (default `~/.config/retro-terminals/banners`) |
+
+**Paste your own art.** Drop a file named for the machine
+(`~/.config/retro-terminals/banners/hal`, or `hal.txt`) and it prints verbatim,
+winning over the built-in — embed ANSI color, or leave it plain to ride the
+machine's native palette. Nine machines ship built-in banners (`hal weyland vk
+nostromo tron wopr lcars pipboy c64`); `tools/retro-banner --list` shows them and
+the override path.
+
+### One instance per machine — and why
+
+macOS binds a Ghostty **config to the process** and can't open a new window with
+a *different* config inside a running instance (the `+new-window` IPC is
+Linux-only; on macOS Ghostty points you at `open -na Ghostty`). So each launcher
+uses `open -n` — a **new instance** — the only way `--config-file` takes effect.
+One instance = one machine.
+
+That's the model, not a tax:
+
+- **More windows of the same machine** — inside a machine's window, **⌘N / ⌘T**
+  open more windows/tabs of *that* machine, no new instance. Each inherits
+  `env = RETRO_MACHINE=<key>` (baked into the config) and quietly wears the
+  period prompt — without re-running the banner + gate.
+- **A different machine** — run another `ghostty-<machine>` / `ghostty-random`.
+  That's the only time you spawn a new instance.
+
+So: launch a machine once, live in it with ⌘N/⌘T; spawn a new instance only to
+change machines. The theatrical boot fires on the fresh launch; sibling windows
+just wear the prompt.
+
+> Why not one instance recoloring per window? OSC escapes can repaint the 16
+> colors live but **can't change the font or shader** — only a real config load
+> does, which is why the launch model is per-instance. The `retro <machine>` /
+> `retro random` shell commands still do that live OSC recolor when you want it
+> (e.g. inside iTerm2, where the profile is fixed). `retro off` restores.
+
+---
+
+## 4. Browse, tune, publish — the studio
 
 ```bash
 python3 build_ghostty.py --studio    # build ghostty-studio.html from the SPEC
@@ -97,7 +160,7 @@ The CRT dials tune the *shared* `shaders/crt.glsl` (one shader, all tubes);
 
 ---
 
-## 4. Tune the CRT by hand
+## 5. Tune the CRT by hand
 
 The knobs are the constants at the top of the shader:
 
@@ -122,7 +185,7 @@ Put `custom-shader = /Users/<you>/.config/ghostty/shaders/crt.glsl` in your main
 
 ---
 
-## 5. Opt into theme-following tmux
+## 6. Opt into theme-following tmux
 
 The status bar, window tabs, pane borders, copy mode and clock can all follow
 whichever profile the window wears — because they're built from ANSI palette
@@ -149,7 +212,7 @@ Starship already follows (it styles with ANSI color *names* like `green` /
 
 ---
 
-## 6. Opt into theme-following nvim
+## 7. Opt into theme-following nvim
 
 nvim with `termguicolors` bakes 24-bit hex and ignores the ANSI palette — so it
 doesn't follow the profile the way tmux/starship do. `integration/nvim` is a
@@ -179,7 +242,7 @@ palette), and `:Retro` again restores exactly what you had — no scheme name is
 hardcoded, so it fits any daily driver. (`:colorscheme retro-ansi` also works if
 you just want to set it directly.)
 
-## 7. After editing palettes
+## 8. After editing palettes
 
 ```bash
 python3 build_profiles.py            # rebuild iTerm2 profiles
@@ -196,7 +259,7 @@ SPEC — `build_ghostty.py` imports it rather than copying it.
 
 ![nvim in retro-ansi inside a green-phosphor Ghostty tube](assets/nvim-retro-ansi.png)
 
-`:Retro` in a green-phosphor window (§6) — nvim drops to 16-color mode and draws
+`:Retro` in a green-phosphor window (§7) — nvim drops to 16-color mode and draws
 its syntax highlighting from the terminal's ANSI palette, so the editor goes
 monochrome phosphor green, curved glass, scanlines, and all. The same file in a
 C64 or amber window would wear that machine's palette instead. Terminal, status

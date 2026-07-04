@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+"""retro-banner — preview harness for the big ASCII boot banners.
+
+This is a *prototype* (the "no shell edits" path): it renders a machine's
+banner in full 24-bit color so we can iterate on the art in a real terminal
+cell grid — the one place ASCII art that depends on monospace width + color
+can actually be judged. Once the art is locked, it graduates into
+build_profiles.py as the source of truth, and both the iTerm2 Initial-Text
+fallback and the tmux `retro-banner` shell function pull from there.
+
+    tools/retro-banner hal            # render HAL in color
+    tools/retro-banner weyland
+    tools/retro-banner --list
+    tools/retro-banner hal --no-color # shape only, to check alignment
+
+Design (Cognitive Honing: push logic down): the art is stored as a plain
+picture string per machine; a per-machine list of (glyph-set -> color) paint
+rules colors it. Data is dumb, the renderer is smart. Adding a machine =
+add a picture + a palette, no new code.
+"""
+import os
+import sys
+
+# ---------------------------------------------------------------------------
+# 24-bit color helpers. Hexes mirror the machine palettes in build_profiles.py
+# ---------------------------------------------------------------------------
+def fg(hexstr):
+    r, g, b = (int(hexstr[i:i+2], 16) for i in (0, 2, 4))
+    return f"\x1b[38;2;{r};{g};{b}m"
+
+def bg(hexstr):
+    r, g, b = (int(hexstr[i:i+2], 16) for i in (0, 2, 4))
+    return f"\x1b[48;2;{r};{g};{b}m"
+
+RESET = "\x1b[0m"
+BOLD = "\x1b[1m"
+
+# ---------------------------------------------------------------------------
+# The art. Each machine: a picture (raw lines) + paint rules applied in order.
+# A paint rule is (set_of_chars, color_hex). First matching rule wins per glyph.
+# `frame_chars` get the dim frame color; anything unmatched gets `base`.
+# ---------------------------------------------------------------------------
+FRAME = set("╭╮╰╯│─┌┐└┘├┤┬┴┼═║╔╗╚╝▔▁")
+
+HAL = r"""
+   ┌─────┐┌────────┐
+   │ HAL ││  9000  │
+   └─────┘└────────┘
+
+            ▄▄▄▄▄▄
+         ▄██████████▄
+        ██████████████
+       ████████████████
+       ███████●████████
+       ████████████████
+        ██████████████
+         ▀██████████▀
+            ▀▀▀▀▀▀
+
+   ░▒░▒░▒░▒░▒░▒░▒░▒░▒░
+   ▒░▒░▒░▒░▒░▒░▒░▒░▒░▒
+   ░▒░▒░▒░▒░▒░▒░▒░▒░▒░
+
+   I'm sorry, Dave. I'm afraid
+   I can't do that.
+"""
+
+WEYLAND = r"""
+  ╲▼▼▼▼▼╱ ╲▼▼▼▼▼╱ ╲▼▼▼▼▼╱
+   ╲▼▼▼╱   ╲▼▼▼╱   ╲▼▼▼╱
+    ╲▼╱     ╲▼╱     ╲▼╱
+     ╲───────▲───────╱
+      ╲     ▲▲▲     ╱
+       ╲   ▲▲▲▲▲   ╱
+
+   WEYLAND-YUTANI CORP
+   Building Better Worlds
+"""
+
+VK = r"""
+ ╭────────────────────────╮
+ │  ██╗   ██╗██╗  ██╗     │
+ │  ██║   ██║██║ ██╔╝     │
+ │  ╚██╗ ██╔╝█████╔╝      │
+ │   ╚████╔╝ ██╔═██╗      │
+ │    ╚██╔╝  ██║  ██╗     │
+ │     ╚═╝   ╚═╝  ╚═╝     │
+ ╰────────────────────────╯
+
+   VOIGHT-KAMPFF
+   Test to distinguish replicants from humans
+"""
+
+NOSTROMO = r"""
+   ┌───────────────────────╱▔▔▔▔▔╲──┐
+   │  N O S T R O M O     ▕ ▪ ▪   ▏ │
+   │                      ▕     ▪ ▏ │
+   ├───────────────────────╲▁▁▁▁▁╱──┤
+   │  1 8 0 9 2 4 6 0 9             │
+   └───────────────────────────────┘
+
+   MU/TH/UR 6000  —  INTERFACE 2037
+   READY FOR INQUIRY
+"""
+
+TRON = r"""
+ ████████╗██████╗  ██████╗ ███╗   ██╗
+ ╚══██╔══╝██╔══██╗██╔═══██╗████╗  ██║
+    ██║   ██████╔╝██║   ██║██╔██╗ ██║
+    ██║   ██╔══██╗██║   ██║██║╚██╗██║
+    ██║   ██║  ██║╚██████╔╝██║ ╚████║
+    ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
+
+   ENCOM MAINFRAME · OS-12
+   I FIGHT FOR THE USERS      END OF LINE.
+"""
+
+WOPR = r"""
+ ██╗    ██╗ ██████╗ ██████╗ ██████╗
+ ██║    ██║██╔═══██╗██╔══██╗██╔══██╗
+ ██║ █╗ ██║██║   ██║██████╔╝██████╔╝
+ ██║███╗██║██║   ██║██╔═══╝ ██╔══██╗
+ ╚███╔███╔╝╚██████╔╝██║     ██║  ██║
+  ╚══╝╚══╝  ╚═════╝ ╚═╝     ╚═╝  ╚═╝
+
+   GREETINGS PROFESSOR FALKEN.
+   SHALL WE PLAY A GAME?
+"""
+
+LCARS = r"""
+ ▟██████████████████████████████████▙
+ ██  LCARS 24-ALPHA                  █
+ ▜██████████████████████████████████▛
+   ▐███▌  LIBRARY COMPUTER ACCESS / RETRIEVAL
+   ▐███▌  STARFLEET COMPUTER CORE
+   ▐███▌  STATE YOUR INQUIRY
+"""
+
+PIPBOY = r"""
+ ┌──────────────────────────────────────┐
+ │ ROBCO INDUSTRIES (TM) TERMLINK        │
+ │                                       │
+ │ WELCOME TO ROBCO INDUSTRIES (TM)      │
+ │ TERMLINK                              │
+ │                                       │
+ │ >SET TERMINAL/INQUIRE                 │
+ │ RIT-V300                              │
+ │ >ENTER PASSWORD NOW                   │
+ │ ▓                                     │
+ └──────────────────────────────────────┘
+"""
+
+C64 = r"""
+
+    **** COMMODORE 64 BASIC V2 ****
+
+    64K RAM SYSTEM  38911 BASIC BYTES FREE
+
+    READY.
+    █
+"""
+
+MACHINES = {
+    "hal": {
+        "bg": "0A0000",
+        "art": HAL,
+        "rules": [
+            (set("●"), "FFD24A"),          # the glowing pupil — the hero glyph
+            (set("█▄▀"), "E02020"),        # lens sphere: dark glass red
+            (set("░▒"), "600000"),         # speaker grille
+            (set("HAL"), "4CC8FF"),        # blue label plate text
+            (set("9000"), "FFD0D0"),
+        ],
+        "base": "FF6B6B",                  # tagline
+        "frame": "804040",
+    },
+    "weyland": {
+        "bg": "1A1206",
+        "art": WEYLAND,
+        "rules": [
+            (set("▼▲"), "F5A623"),         # amber triangles
+            (set("╲╱"), "FFF0C8"),         # white chevron strokes
+        ],
+        "base": "F5B942",
+        "frame": "F5B942",
+    },
+    "vk": {
+        "bg": "0A0000",
+        "art": VK,
+        "rules": [
+            (set("█╗║╝╔╚═"), "E01818"),    # the red VK monogram
+        ],
+        "base": "FFD0D0",
+        "frame": "804040",
+    },
+    "nostromo": {
+        "bg": "8B0000",
+        "art": NOSTROMO,
+        "rules": [
+            (set("◹"), "6C8CE0"),
+        ],
+        "base": "6C8CE0",                  # Nostromo blue on red
+        "frame": "6C8CE0",
+    },
+    "tron": {
+        "bg": "010A12",
+        "art": TRON,
+        "rules": [(set("█╗║╝╔╚═"), "7EE8FF")],   # cyan block letters
+        "base": "4CE0C0",
+        "frame": "2A9AD0",
+    },
+    "wopr": {
+        "bg": "000A18",
+        "art": WOPR,
+        "rules": [(set("█╗║╝╔╚═"), "4CC8FF")],   # NORAD blue block letters
+        "base": "8CD8FF",
+        "frame": "1E6AA0",
+    },
+    "lcars": {
+        "bg": "000000",
+        "art": LCARS,
+        "rules": [
+            (set("▐▌"), "FFCC00"),               # gold bar caps
+            (set("█▟▙▜▛"), "FF9900"),            # orange panels
+        ],
+        "base": "FFCC99",
+        "frame": "CC99CC",                        # mauve
+    },
+    "pipboy": {
+        "bg": "001200",
+        "art": PIPBOY,
+        "rules": [(set(">▓"), "6BFFA0")],        # prompt + cursor, brighter green
+        "base": "18FF6D",
+        "frame": "12B04A",                        # dim phosphor frame
+    },
+    "c64": {
+        "bg": "40318D",
+        "art": C64,
+        "rules": [(set("█"), "B0A4FF")],         # blinking cursor block, brighter
+        "base": "7869C4",
+        "frame": "7869C4",
+    },
+}
+ALIASES = {"weyland-yutani": "weyland", "hal9000": "hal", "voight-kampff": "vk",
+           "mother": "nostromo", "muthur": "nostromo", "commodore-64": "c64",
+           "fallout-pip-boy": "pipboy"}
+
+
+def paint(line, spec, color):
+    out = []
+    for ch in line:
+        if not color or ch == " ":
+            out.append(ch)
+            continue
+        c = None
+        if ch in FRAME:
+            c = spec["frame"]
+        else:
+            for chars, hx in spec["rules"]:
+                if ch in chars:
+                    c = hx
+                    break
+            if c is None:
+                c = spec["base"]
+        out.append(fg(c) + ch)
+    return "".join(out)
+
+
+# ---------------------------------------------------------------------------
+# User overrides: paste your own art at
+#   ~/.config/retro-terminals/banners/<machine>[.txt|.ans]
+# (override the dir with $RETRO_BANNER_DIR). A file there wins over the built-in
+# and is printed VERBATIM — embed your own ANSI color, or leave it plain to ride
+# the machine's native palette. This is the "bring your own art" path, and it
+# also lets you add a banner for a machine that has no built-in one yet.
+# ---------------------------------------------------------------------------
+BANNER_DIR = os.environ.get(
+    "RETRO_BANNER_DIR", os.path.expanduser("~/.config/retro-terminals/banners")
+)
+
+
+def user_art(*names):
+    for n in names:
+        if not n:
+            continue
+        for cand in (n, n + ".txt", n + ".ans"):
+            path = os.path.join(BANNER_DIR, cand)
+            if os.path.isfile(path):
+                return path
+    return None
+
+
+def render(name, color=True):
+    key = ALIASES.get(name.lower(), name.lower())
+    override = user_art(name.lower(), key)
+    if override:
+        with open(override) as f:
+            print("\n" + f.read().rstrip("\n") + "\n")
+        return
+    spec = MACHINES.get(key)
+    if not spec:
+        sys.exit(f"unknown machine '{name}'. try: {', '.join(MACHINES)}")
+    lines = spec["art"].strip("\n").splitlines()
+    width = max((len(l) for l in lines), default=0) + 3
+    out = []
+    for l in lines:
+        body = paint(l, spec, color) + (RESET if color else "")
+        pad = " " * (width - len(l))
+        if color:
+            out.append(bg(spec["bg"]) + " " + body + pad + RESET)
+        else:
+            out.append(" " + l + pad)
+    top = (bg(spec["bg"]) + " " * (width + 1) + RESET) if color else ""
+    print()
+    if color:
+        print(top)
+    print("\n".join(out))
+    if color:
+        print(top)
+    print()
+
+
+def main():
+    args = [a for a in sys.argv[1:]]
+    color = "--no-color" not in args
+    args = [a for a in args if not a.startswith("-")]
+    if not args or "--list" in sys.argv[1:]:
+        print("built-in banners:", ", ".join(MACHINES))
+        print(f"paste your own (wins over built-in): {BANNER_DIR}/<machine>[.txt]")
+        if not args:
+            return
+    render(args[0], color=color)
+
+
+if __name__ == "__main__":
+    main()

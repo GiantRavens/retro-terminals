@@ -174,6 +174,11 @@ def render_config(p: dict, shader_path: str) -> str:
             "# launch:  ghostty --config-file=<this file>",
             ""]
     body = color_lines(p) + [""] + config_lines(p, is_tube(p))
+    key = bp.SHELL_KEY.get(base_name(p), "")
+    if key:
+        # Every window in this instance (including Cmd-N / Cmd-T) inherits this,
+        # so the shell can wear the machine's prompt without a per-launch stash.
+        body += ["", f"env = RETRO_MACHINE={key}"]
     if is_tube(p):
         body += [f"custom-shader = {shader_path}", "custom-shader-animation = true"]
     return "\n".join(head + body) + "\n"
@@ -289,13 +294,19 @@ def main():
     shader_path = write_shader(dest)
 
     launch_base = portable(dest)[0]   # $HOME/.config/ghostty (or absolute --dest)
+    boot_stash = f"{launch_base}/retro/.boot-machine"
     aliases = [
         "# retro-terminals launchers. Source from your ~/.zshrc:",
         f"#   source {launch_base}/retro/aliases.sh",
         "# Opens a NEW Ghostty window styled as that machine. Cross-platform:",
         "# macOS uses `open`; Linux/BSD run `ghostty` directly.",
+        "#",
+        "# $2 (optional) = machine key. It's stashed to a FIXED path (not $TMPDIR,",
+        "# which open(1)/LaunchServices can change) so the new window's shell can",
+        "# fire that machine's boot banner + prompt (retro-prompts.zsh consumes it).",
         "",
         "_retro_ghostty() {",
+        f'  [ -n "$2" ] && printf %s "$2" > "{boot_stash}" 2>/dev/null',
         '  if [ "$(uname)" = "Darwin" ]; then',
         '    open -na Ghostty --args --config-file="$1"',
         "  else",
@@ -306,11 +317,14 @@ def main():
     ]
 
     total = tubes = 0
+    slug_keys = []
     for group, tag in GROUPS:
         print(f"\n[{tag}]")
         for p in group:
             base = base_name(p)
             slug = f"{tag}-{kebab(base)}"
+            key = bp.SHELL_KEY.get(base, "")
+            slug_keys.append((slug, key))
             tube = is_tube(p)
 
             with open(os.path.join(themes_dir, slug), "w") as f:
@@ -321,13 +335,29 @@ def main():
 
             fn = "ghostty-" + kebab(base)
             aliases.append(
-                f'{fn}() {{ _retro_ghostty "{launch_base}/retro/{slug}"; }}'
+                f'{fn}() {{ _retro_ghostty "{launch_base}/retro/{slug}" "{key}"; }}'
                 f'  # {p["Name"]}'
             )
 
             total += 1
             tubes += tube
             print(f"    {base:<22} {'[CRT]' if tube else '     '} theme+config -> {slug}")
+
+    # A random-machine launcher: open a NEW window as a machine chosen at launch,
+    # so it wears the full config natively (colors + font + CRT shader + title,
+    # and tmux's palette-relative status bar follows for free). This is the
+    # Ghostty-native answer to "random profile on start" — no OSC recolor, no
+    # profile-name mismatch. Bind it to a hotkey or alias it to your new-window.
+    aliases += [
+        "",
+        "# Open a NEW window as a RANDOM machine (full native fidelity).",
+        "ghostty-random() {",
+        "  set -- " + " ".join(f"{s}:{k}" for s, k in slug_keys),
+        "  _n=$(( (RANDOM % $#) + 1 ))",
+        "  shift $(( _n - 1 ))",
+        f'  _retro_ghostty "{launch_base}/retro/${{1%%:*}}" "${{1##*:}}"',
+        "}",
+    ]
 
     with open(os.path.join(retro_dir, "aliases.sh"), "w") as f:
         f.write("\n".join(aliases) + "\n")
