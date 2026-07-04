@@ -337,7 +337,11 @@ is using.
   plugin — a `retro-ansi` colorscheme (turns `termguicolors` off, paints every
   highlight group from slots 0–15) plus a **`:Retro`** command. The editor then
   wears whichever profile the window has (green-phosphor window → monochrome-
-  green nvim; C64 → C64). Point your runtimepath at it — with lazy.nvim:
+  green nvim; C64 → C64):
+
+  ![nvim wearing retro-ansi in a green-phosphor Ghostty tube](assets/nvim-retro-ansi.png)
+
+  Point your runtimepath at it — with lazy.nvim:
 
   ```lua
   { dir = vim.fn.expand("/path/to/retro-terminals/integration/nvim"),
