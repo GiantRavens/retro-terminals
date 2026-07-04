@@ -1,5 +1,7 @@
 # Retro Terminals — retro themes for iTerm2, Ghostty & nvim
 
+[![Ghostty Studio — browse all 39 retro palettes, tune the CRT live, publish a ready-to-use profile](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
+
 **39 retro terminal themes** — real historic machines (`retro`: VT220 green
 phosphor, C64, Amiga…), fictional computers (`sci-fi`: HAL, TRON, Pip-Boy…),
 aesthetic movements (`aesthetic`: vaporwave, steampunk…), and the Alien/Blade
@@ -31,8 +33,6 @@ The gallery renders every profile in its real font (the OFL/public-domain fonts
 are embedded, so they show for everyone; the rest need a local install). The
 playground is a live WebGL curved-glass CRT. The **studio** browses all 39
 palettes, tunes the CRT live, and publishes a ready-to-use Ghostty profile.
-
-[![Ghostty Studio — browse, tune, publish](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
 
 ## Install (build them into your iTerm2)
 
