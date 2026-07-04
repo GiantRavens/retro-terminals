@@ -90,6 +90,25 @@ FONT_LEADING = {
 SYMBOLS_FONT = "SymbolsNFM"
 
 
+# Machine-font advance width as a fraction of point size ('M' advance / size,
+# measured via CoreText 2026-07-04). SymbolsNFM glyphs advance exactly 1em —
+# width == point size — so the fallback must be sized to the machine font's
+# CELL width, not its point size, or every icon spans ~2 cells and swallows
+# the first letter of the filename next to it (Neo-tree budgets icon + one
+# space). C64 Pro Mono is a true square font (1.0): no scaling needed there.
+FONT_CELL_EM = {
+    "Courier": 0.60,
+    "Menlo": 0.602,
+    "Glass TTY VT220": 0.50,
+    "Terminus (TTF)": 0.50,
+    "IBM 3270": 0.54,
+    "Departure Mono": 0.636,
+    "C64 Pro Mono": 1.0,
+    "Print Char 21": 0.875,
+    "Bedstead": 0.60,
+}
+
+
 def machine(
     name,
     font,
@@ -133,7 +152,10 @@ def machine(
         "Dynamic Profile Parent Name": "Default",
         # --- fonts ---
         "Normal Font": fontstr,
-        "Non Ascii Font": f"{SYMBOLS_FONT} {size}" if symbols else fontstr,
+        "Non Ascii Font": (
+            f"{SYMBOLS_FONT} {max(6, round(size * FONT_CELL_EM.get(font, 0.6)))}"
+            if symbols else fontstr
+        ),
         "Use Non-ASCII Font": symbols,
         "ASCII Anti Aliased": aa,
         # Symbol glyphs are vector outlines — keep them AA'd even when the
