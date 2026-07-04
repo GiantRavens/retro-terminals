@@ -76,6 +76,20 @@ FONT_LEADING = {
 }
 
 
+# Nerd Font symbol fallback for non-ASCII glyphs (nvim-web-devicons, Neo-tree,
+# lualine, etc.). The retro fonts are character-ROM conversions with no
+# Private Use Area glyphs, so file icons render as '?'. iTerm2's ASCII /
+# non-ASCII font split fixes this surgically: ASCII (99.9% of a terminal's
+# life) stays in the machine font; anything beyond renders from Symbols Nerd
+# Font Mono — an icons-only font, installed by fonts/install-fonts.sh
+# (brew cask font-symbols-only-nerd-font). "SymbolsNFM" is its PostScript
+# name, verified via CoreText. Ghostty needs none of this: it ships a
+# built-in Nerd Font fallback, and build_ghostty.py only emits font-family.
+# Purists can instead keep icons ASCII inside nvim — see
+# integration/nvim/lua/retro/icons.lua.
+SYMBOLS_FONT = "SymbolsNFM"
+
+
 def machine(
     name,
     font,
@@ -92,6 +106,7 @@ def machine(
     cursor_type=BOX,
     blink=False,
     aa=True,            # anti-alias ASCII glyphs (False = crisp pixels)
+    symbols=True,       # Nerd Font fallback for non-ASCII (icons in nvim etc.)
     bright_bold=True,
     min_contrast=0.0,
     transparency=0.0,
@@ -118,10 +133,12 @@ def machine(
         "Dynamic Profile Parent Name": "Default",
         # --- fonts ---
         "Normal Font": fontstr,
-        "Non Ascii Font": fontstr,
-        "Use Non-ASCII Font": False,
+        "Non Ascii Font": f"{SYMBOLS_FONT} {size}" if symbols else fontstr,
+        "Use Non-ASCII Font": symbols,
         "ASCII Anti Aliased": aa,
-        "Non-ASCII Anti Aliased": aa,
+        # Symbol glyphs are vector outlines — keep them AA'd even when the
+        # machine font renders as crisp pixels.
+        "Non-ASCII Anti Aliased": True if symbols else aa,
         "Use Bold Font": True,
         "Use Italic Font": True,
         "Horizontal Spacing": hspacing,
