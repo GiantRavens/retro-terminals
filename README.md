@@ -1,5 +1,9 @@
 # Retro Terminals — retro themes for iTerm2, Ghostty & nvim
 
+*Boot your terminal like it's 1983.* Phosphor that glows, a `READY.` that means
+it, HAL watching from the title bar — **39 machines, real and imagined**, that
+your terminal *and editor* can wear. On Ghostty the glass actually curves.
+
 [![Ghostty Studio — browse all 39 retro palettes, tune the CRT live, publish a ready-to-use profile](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
 
 **39 retro terminal themes** — real historic machines (`retro`: VT220 green
@@ -54,6 +58,8 @@ filter by tag (`retro` / `sci-fi` / `aesthetic` / `corp`).
 
 ## What's installed — `retro` (real machines)
 
+The real iron — teletype paper, phosphor tubes, and that unmistakable C64 blue.
+
 | Profile | Look | Font |
 |---|---|---|
 | Paper Teletype | Sepia ink on aged fanfold paper (DECwriter / ASR-33) | Courier |
@@ -78,6 +84,8 @@ freely hosted. The palette does the identifying work.
 
 ## `sci-fi` (fictional computers)
 
+The screens that raised us. *Shall we play a game?*
+
 | Profile | Look |
 |---|---|
 | The Matrix | Digital-rain green `#00FF41`, glow |
@@ -93,6 +101,8 @@ freely hosted. The palette does the identifying work.
 | LCARS | Star Trek panel palette — orange / gold / mauve / blue on black |
 
 ## `aesthetic` (genre movements)
+
+For when you want a *vibe*, not a specific machine — pick your -punk.
 
 | Profile | Look |
 |---|---|
@@ -397,3 +407,8 @@ For the full curvature/scanline treatment you have two paths off iTerm2: the
 exact palettes) or a dedicated emulator like **cool-retro-term** (the whole app
 *is* the CRT). The iTerm2 profiles stay real sessions you can actually work in;
 Ghostty is where the tube gets genuinely curved.
+
+---
+
+Now go make your terminal look like it belongs on a starship. `READY.`
+ ▮
