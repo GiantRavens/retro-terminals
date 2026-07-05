@@ -255,6 +255,31 @@ SPEC — `build_ghostty.py` imports it rather than copying it.
 
 ---
 
+## Troubleshooting
+
+**Mouse scroll dead in a full-screen app outside tmux** (mdbrowse, fzf, htop…).
+Ghostty sets `TERM=xterm-ghostty`; if that terminfo entry isn't installed, apps
+that probe terminfo before enabling mouse reporting come up empty and never turn
+the mouse on — so the wheel does nothing. tmux masks it (`tmux-256color` is
+always installed and mouse-capable); pagers like `less`/`man` still scroll
+because Ghostty fakes wheel→arrow-keys for them, which doesn't consult terminfo.
+
+Install Ghostty's bundled terminfo for your user (no sudo):
+
+```bash
+B=/Applications/Ghostty.app/Contents/Resources/terminfo
+mkdir -p ~/.terminfo/78 ~/.terminfo/67
+cp "$B/78/xterm-ghostty" ~/.terminfo/78/
+cp "$B/67/ghostty"       ~/.terminfo/67/
+infocmp xterm-ghostty >/dev/null && echo installed    # verify: should print `installed`
+```
+
+Then just re-run the app — no new window needed. (Self-updating alternative:
+`export TERMINFO_DIRS="$B:"` in your shell rc, which tracks Ghostty updates but
+only covers shell-launched apps.)
+
+---
+
 ## nvim, wearing the machine
 
 ![nvim in retro-ansi inside a green-phosphor Ghostty tube](assets/nvim-retro-ansi.png)
