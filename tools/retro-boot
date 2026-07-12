@@ -1,0 +1,264 @@
+#!/usr/bin/env zsh
+# retro-boot — the deliberate boot experience for one machine.
+#
+# One engine, per-machine data (banners/<key>.boot + banners/<key>.txt):
+# type out the machine's boot chatter with key-click sounds, reveal the big
+# ASCII banner, print the gallery spec line, hold on a blinking ENTER gate,
+# then (with --login) exec your real shell.
+#
+#   tools/retro-boot hal              # presentation only (in-shell path)
+#   tools/retro-boot --login hal      # iTerm2 profile "Command": if
+#                                     #   retro-prompts.zsh is wired into your rc,
+#                                     #   silently stash the key + exec $SHELL -l
+#                                     #   and let the shell play the show in its
+#                                     #   final surface (survives tmux autostart);
+#                                     #   otherwise play it here, pre-shell, then
+#                                     #   exec. Either way: no prompt flicker.
+#
+# Chatter script: banners/<key>.boot — lines are typed out; directives:
+#   #: sound <set>     klonk key-click set (~/.hammerspoon/Spoons/Klonk.spoon/sounds)
+#   #: cps <n>         typing speed, characters per second
+#   @sleep <sec>       pause
+#   @bell              terminal bell + enter-key sound
+#   @art               render the big banner here (default: after all lines)
+#   @print <text>      print a line instantly (no typing)
+#
+# Your overrides win: ~/.config/retro-terminals/boot/<key>.boot replaces the
+# shipped chatter; ~/.config/retro-terminals/boot/<key>.sh replaces the WHOLE
+# presentation (it is sourced instead — go wild).
+#
+# Knobs (env):
+#   RETRO_BOOT=0             skip the presentation entirely
+#   RETRO_BOOT_WAIT=1        hold on a blinking ENTER gate (default: no gate,
+#                            just a short beat after the art)
+#   RETRO_BOOT_SOUND=0       mute
+#   RETRO_BOOT_CPS=n         override typing speed
+#   RETRO_BOOT_VOL=0.35      key-click volume
+#   RETRO_BOOT_THROTTLE=120  within this many seconds of the last boot of the
+#                            same machine (think: split pane, new tab), do the
+#                            QUICK version — instant art, no typing, no gate.
+#                            0 = full ceremony every time.
+emulate -L zsh
+setopt extended_glob null_glob
+
+zmodload zsh/zselect 2>/dev/null
+zmodload zsh/stat    2>/dev/null
+
+SELF="${0:A}"
+RETRO_DIR="${SELF:h:h}"
+BANNERS_DIR="$RETRO_DIR/banners"
+USER_BOOT_DIR="${RETRO_BOOT_DIR:-$HOME/.config/retro-terminals/boot}"
+STATE_DIR="$HOME/.config/retro-terminals"
+SND_ROOT="${RETRO_SOUND_ROOT:-$HOME/.hammerspoon/Spoons/Klonk.spoon/sounds}"
+
+LOGIN=0 QUICK=0 KEY=""
+for a in "$@"; do
+  case "$a" in
+    --login) LOGIN=1 ;;
+    --quick) QUICK=1 ;;
+    --list)  ls "$BANNERS_DIR"/*.boot(N:t:r); exit 0 ;;
+    -*)      print -u2 "retro-boot: unknown flag $a" ;;
+    *)       KEY="$a" ;;
+  esac
+done
+
+hand_off() {  # become the real shell (iTerm2 profile Command path)
+  if (( LOGIN )); then
+    export RETRO_MACHINE="$KEY"
+    # Deferred mode: stash the key like the ghostty-* launchers do —
+    # retro-prompts.zsh consumes it in the (first tmux pane's) shell and plays
+    # the presentation THERE, after any tmux attach has done its screen wipe.
+    if (( DEFER )) && [[ -n "$KEY" ]]; then
+      mkdir -p "$HOME/.config/ghostty/retro" 2>/dev/null
+      printf %s "$KEY" > "$HOME/.config/ghostty/retro/.boot-machine" 2>/dev/null
+    fi
+    exec "${SHELL:-/bin/zsh}" -l
+  fi
+  exit 0
+}
+
+# Defer to the shell side when retro-prompts.zsh is wired into the user's rc:
+# playing the show pre-shell and THEN letting a tmux autostart wipe it reads as
+# a flash (art -> wipe -> art). Instead we silently stash the key and exec the
+# shell; _retro_dispatch_start plays the full presentation exactly once, in the
+# final surface (the first tmux pane, or the plain shell) where nothing will
+# clear it and the prompt lands below the art. Pre-shell presentation remains
+# the zero-integration fallback.
+DEFER=0
+if (( LOGIN )) && command grep -qs "retro-prompts.zsh" \
+    "$HOME/.zshrc" "$HOME/.zshrc.local" "$HOME/.zprofile" 2>/dev/null; then
+  DEFER=1
+fi
+
+[[ -n "$KEY" ]] || { print -u2 "usage: retro-boot [--login] <machine>"; hand_off }
+(( DEFER )) && hand_off
+[[ "${RETRO_BOOT:-1}" == "1" ]] || hand_off
+[[ -t 1 ]] || hand_off
+
+# ── millisecond sleep without forking ────────────────────────────────────────
+msleep() {  # $1 = milliseconds (fractions fine — zselect wants integer centisecs)
+  local -i cs=$(( $1 / 10 ))
+  if (( $+builtins[zselect] )); then
+    (( cs > 0 )) && zselect -t $cs 2>/dev/null
+  else
+    command sleep $(( $1 / 1000.0 ))
+  fi
+  return 0
+}
+
+# ── sound: klonk key-click sets via afplay (macOS); silent no-op elsewhere ───
+typeset -ga _SND_KEYS
+typeset -g  _SND_ENTER="" _SND_OK=0
+snd_init() {  # $1 = set name
+  [[ "${RETRO_BOOT_SOUND:-1}" == "1" ]] || return
+  command -v afplay >/dev/null 2>&1 || return
+  local dir="$SND_ROOT/${1:-typewriter}"
+  [[ -d "$dir" ]] || dir="$SND_ROOT/typewriter"
+  [[ -d "$dir" ]] || return
+  _SND_KEYS=("$dir"/down<->.wav(N) "$dir"/click<->.wav(N))
+  [[ -f "$dir/enter.wav" ]] && _SND_ENTER="$dir/enter.wav"
+  (( ${#_SND_KEYS} )) && _SND_OK=1
+}
+snd_key() {
+  (( _SND_OK )) || return 0
+  (( RANDOM % 100 < ${RETRO_BOOT_SFX_DENSITY:-40} )) || return 0
+  afplay -v "${RETRO_BOOT_VOL:-0.35}" "${_SND_KEYS[RANDOM % ${#_SND_KEYS} + 1]}" &>/dev/null &!
+}
+snd_enter() {
+  [[ -n "$_SND_ENTER" ]] || return 0
+  afplay -v "${RETRO_BOOT_VOL:-0.35}" "$_SND_ENTER" &>/dev/null &!
+}
+
+# ── the typewriter ───────────────────────────────────────────────────────────
+typeset -g CPS=22
+typeline() {  # $1 = text
+  local s="$1" i ch base=$(( 1000 / CPS ))
+  (( base > 0 )) || base=1
+  for (( i = 1; i <= ${#s}; i++ )); do
+    ch="${s[i]}"
+    printf '%s' "$ch"
+    [[ "$ch" == " " ]] || snd_key
+    msleep $(( base / 2 + RANDOM % base ))     # jitter: 0.5x..1.5x the base delay
+  done
+  print
+  msleep 120
+}
+
+# ── the big banner, spec line, gate ──────────────────────────────────────────
+show_art() {
+  local py; py="$(command -v python3 || print /usr/bin/python3)"
+  [[ -x "$RETRO_DIR/tools/retro-banner" ]] && \
+    "$py" "$RETRO_DIR/tools/retro-banner" "$KEY" 2>/dev/null
+}
+
+spec_line() {  # gallery-card line: Sci-Fi · HAL 9000 · 1968
+  local nm="${_RETRO_NAME[$KEY]}" era="${_RETRO_ERA[$KEY]}"
+  [[ -n "$nm$era" ]] || return 0
+  [[ -n "$era" ]] && nm="$nm  ·  $era"
+  print -- "   \e[2m$nm\e[0m"
+}
+
+gate() {
+  # Opt-in (RETRO_BOOT_WAIT=1): hold on a blinking ENTER prompt. Default: a
+  # short beat so the reveal lands, then straight on to the shell.
+  if [[ "${RETRO_BOOT_WAIT:-0}" != "1" ]]; then
+    msleep 800
+    return 0
+  fi
+  [[ -r /dev/tty ]] || return 0
+  local on=1
+  print
+  while true; do
+    if (( on )); then
+      printf '\r   \e[1m▸ PRESS ENTER ▸\e[0m '
+    else
+      printf '\r   \e[2m▹ press enter ▹\e[0m '
+    fi
+    on=$(( 1 - on ))
+    read -t 0.55 -k 1 -s < /dev/tty && break
+  done
+  snd_enter
+  printf '\r%*s\r' 24 ''
+}
+
+# ── main ─────────────────────────────────────────────────────────────────────
+# Throttle: a split pane / rapid new tab within N seconds gets the quick boot.
+mkdir -p "$STATE_DIR" 2>/dev/null
+marker="$STATE_DIR/.lastboot-$KEY"
+throttle="${RETRO_BOOT_THROTTLE:-120}"
+if (( ! QUICK && throttle > 0 )) && [[ -f "$marker" ]] && (( $+builtins[zstat] )); then
+  zmodload zsh/datetime 2>/dev/null
+  typeset -A _mst
+  zstat -H _mst "$marker" 2>/dev/null
+  (( ${_mst[mtime]:-0} + throttle > ${EPOCHSECONDS:-$(date +%s)} )) && QUICK=1
+fi
+: >| "$marker" 2>/dev/null
+
+# Palette metadata (machine display name + era) for the spec line.
+[[ -r "$RETRO_DIR/retro-palettes.zsh" ]] && source "$RETRO_DIR/retro-palettes.zsh"
+
+# Full user takeover: <key>.sh replaces the whole presentation.
+if [[ -r "$USER_BOOT_DIR/$KEY.sh" ]]; then
+  source "$USER_BOOT_DIR/$KEY.sh"
+  hand_off
+fi
+
+# Restore the cursor no matter how we leave.
+trap 'printf "\e[?25h"' EXIT INT TERM
+printf '\e[?25l'
+# Only clear when we OWN a fresh window (profile Command). In-shell boots
+# (`retro random`, the tmux first-pane repaint) draw in place — the art stays
+# on screen and the prompt lands right below it.
+(( LOGIN )) && clear
+
+bootfile=""
+[[ -r "$USER_BOOT_DIR/$KEY.boot" ]] && bootfile="$USER_BOOT_DIR/$KEY.boot"
+[[ -z "$bootfile" && -r "$BANNERS_DIR/$KEY.boot" ]] && bootfile="$BANNERS_DIR/$KEY.boot"
+
+# Header: sound set + cps.
+sound_set="typewriter"
+if [[ -n "$bootfile" ]]; then
+  while IFS= read -r ln; do
+    [[ "$ln" == '#:'* ]] || break
+    set -- ${=ln#\#:}
+    case "$1" in
+      sound) sound_set="$2" ;;
+      cps)   CPS="$2" ;;
+    esac
+  done < "$bootfile"
+fi
+[[ -n "${RETRO_BOOT_CPS:-}" ]] && CPS="$RETRO_BOOT_CPS"
+snd_init "$sound_set"
+
+if (( QUICK )); then
+  # Quick boot: inside tmux the attach just wiped the full presentation, so
+  # re-paint the art instantly. Outside tmux (rapid new tab / split of the
+  # same machine) stay quiet — straight to the prompt.
+  if [[ -n "${TMUX:-}" ]]; then
+    show_art
+    spec_line
+  fi
+else
+  msleep 350                                   # a beat of dark glass: CRT warm-up
+  art_done=0
+  if [[ -n "$bootfile" ]]; then
+    print
+    while IFS= read -r ln; do
+      case "$ln" in
+        '#:'*|'#'*)  continue ;;
+        '@sleep '*)  msleep $(( ${${ln#@sleep }:-0.3} * 1000 )) ;;
+        '@bell')     printf '\a'; snd_enter ;;
+        '@art')      show_art; art_done=1 ;;
+        '@print '*)  print -- "   ${ln#@print }" ;;
+        '')          print ;;
+        *)           printf '   '; typeline "$ln" ;;
+      esac
+    done < "$bootfile"
+  fi
+  (( art_done )) || show_art
+  spec_line
+  gate
+fi
+
+printf '\e[?25h'
+hand_off

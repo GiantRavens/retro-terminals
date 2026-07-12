@@ -474,50 +474,19 @@ PROFILES = [
 
 
 # ---------------------------------------------------------------------------
-# Boot banners  --  printed via iTerm2 "Initial Text" (Send text at start)
+# Boot experience  --  tools/retro-boot as the iTerm2 profile Command
 # ---------------------------------------------------------------------------
-# Each banner is sent to the shell as ONE safe command: `clear; printf ...`,
-# with every line single-quoted so backslashes / symbols stay literal. It
-# prints in the profile's own colors, then hands you a normal prompt.
-
-BANNERS = {
-    "Paper Teletype":      ["TELETYPE MODEL 33 ASR      110 BAUD", "READY"],
-    "CRT Green Phosphor":  ["ULTRIX V4.5  (rev 47)", "DIGITAL VT220 - ONLINE"],
-    "CRT Amber Phosphor":  ["WYSE WY-50   AMBER", "SYSTEM READY"],
-    "Linux Console":       ["Debian GNU/Linux 2.0  futhark  tty1",
-                            "Linux 2.0.36 (i586)", "Welcome to Debian GNU/Linux"],
-    "SunOS cmdtool":       ["SunOS Release 4.1.4  (GENERIC)",
-                            "Copyright (c) Sun Microsystems, Inc."],
-    "IRIX wsh":            ["IRIX Release 6.5  IP32", "Silicon Graphics, Inc."],
-    "Commodore 64":        ["    **** COMMODORE 64 BASIC V2 ****", "",
-                            " 64K RAM SYSTEM  38911 BASIC BYTES FREE", "", "READY."],
-    "MS-DOS Editor":       ["Starting MS-DOS...", "", "MS-DOS Version 6.22"],
-    "Amiga Workbench":     ["AmigaDOS   Workbench 1.3",
-                            "Copyright (c) 1985-1988 Commodore-Amiga, Inc."],
-    "NeXTSTEP":            ["NeXTSTEP 3.3  (mach)"],
-    "OpenStep":            ["OPENSTEP 4.2  (mach)", "Copyright NeXT Software, Inc."],
-    "Apple II":            ["Apple ][", ""],
-    "ZX Spectrum":         ["(C) 1982 Sinclair Research Ltd", "", "0 OK, 0:1"],
-    "Atari 8-bit":         ["ATARI 8-BIT COMPUTER", "MEMO PAD", "READY"],
-    "BBC Micro Mode 7":    ["BBC Computer 32K", "", "Acorn DFS", "", "BASIC"],
-    "Plan 9 acme":         ["Plan 9 from Bell Labs"],
-}
-
-
-def initial_text(lines):
-    # NOTE: iTerm2 auto-appends a newline to "Initial Text" when it sends it at
-    # session start, which submits the command. Do NOT add a trailing "\n" here
-    # or you get TWO newlines -> the banner command runs, then an empty command
-    # runs, and the shell draws its prompt twice (the classic double-prompt).
-    quoted = " ".join("'" + ln + "'" for ln in lines)
-    return "clear; printf '%s\\n' " + quoted
-
-
-for _p in PROFILES:
-    _base = _p["Name"].replace("Retro · ", "")
-    if _base in BANNERS:
-        _p["Initial Text"] = initial_text(BANNERS[_base])
-
+# HISTORY: banners used to be typed into the shell via iTerm2 "Initial Text".
+# That mechanism is keystroke injection — the shell draws a prompt, the command
+# echoes, `clear` wipes, the banner prints, a second prompt draws: four visible
+# repaints (the "spotty startup"). Now each profile runs tools/retro-boot as
+# its session Command instead: the presentation (typed chatter + ASCII art +
+# key-click sounds + ENTER gate) happens BEFORE any shell exists, then it
+# exec's your login shell with $RETRO_MACHINE set so retro-prompts.zsh wears
+# the period prompt. Chatter + art are per-machine data in banners/<key>.*
+# (the old BANNERS dicts here migrated to banners/<key>.boot).
+# The Command is attached in attach_boot_command() below SHELL_KEY, which maps
+# profile names to banner keys.
 
 # ---------------------------------------------------------------------------
 # Scanline bezel  --  a subtle CRT overlay behind the text (real iTerm2)
@@ -641,24 +610,6 @@ FICTION = [
         blurb="Star Trek LCARS: the orange / gold / mauve / blue panel palette on black."),
 ]
 
-FBANNERS = {
-    "The Matrix":       ["Wake up, Neo...", "The Matrix has you...", "Follow the white rabbit."],
-    "TRON":             ["ENCOM MAINFRAME  OS-12", "TRON: I FIGHT FOR THE USERS", "END OF LINE."],
-    "Neuromancer":      ["ONO-SENDAI CYBERSPACE 7",
-                         "The sky above the port was the color of television,",
-                         "tuned to a dead channel.", "", "> jacking in..."],
-    "HAL 9000":         ["HAL 9000   HEURISTIC ALGORITHMIC COMPUTER",
-                         "I am completely operational and all my circuits are functioning perfectly."],
-    "Fallout Pip-Boy":  ["ROBCO INDUSTRIES (TM) TERMLINK", "", "Enter Password Now"],
-    "Severance Lumon":  ["LUMON INDUSTRIES", "Macrodata Refinement", "Please enjoy each number equally."],
-    "Cyberpunk 2077":   ["NIGHT CITY // NETWATCH", "BREACH PROTOCOL: ACTIVE",
-                         "Wake up, Samurai. We have a city to burn."],
-    "Blade Runner":     ["ESPER   -   TYRELL CORP", "ENHANCE 224 TO 176", "More human than human."],
-    "WOPR":             ["GREETINGS PROFESSOR FALKEN.", "", "SHALL WE PLAY A GAME?"],
-    "Outrun":           ["OUTRUN // 1986", "MIAMI  05:44   84F", "> DRIVE"],
-    "LCARS":            ["LCARS 24-ALPHA", "LIBRARY COMPUTER ACCESS / RETRIEVAL SYSTEM",
-                         "", "STARFLEET COMPUTER CORE  -  STATE YOUR INQUIRY"],
-}
 
 FTUBES = {"The Matrix", "TRON", "HAL 9000", "Fallout Pip-Boy", "Blade Runner", "WOPR"}
 
@@ -710,16 +661,6 @@ AESTHETIC = [
         blurb="Mid-century cream, atomic-coral and turquoise. The World of Tomorrow, today."),
 ]
 
-ABANNERS = {
-    "Steampunk":  ["AETHERIC DIFFERENCE ENGINE  MK.III",
-                   "By Appointment to Her Majesty", "STEAM PRESSURE: NOMINAL"],
-    "Solarpunk":  ["SOLARPUNK COLLECTIVE // NODE 7", "Grid: 100% renewable",
-                   "The future is a garden."],
-    "Dieselpunk": ["ATLANTROPA WORKS   UNIT 09", "TURBINE ONLINE", "FOR THE MACHINE AGE"],
-    "Vaporwave":  ["VAPOR OS   v3.11", "AESTHETIC LOADED", "PLAY AT YOUR OWN RISK"],
-    "Atompunk":   ["ATOMIC ELECTRONIC BRAIN   MODEL 1959",
-                   "THE WORLD OF TOMORROW... TODAY!", "POWERED BY THE ATOM"],
-}
 
 
 # ===========================================================================
@@ -790,42 +731,25 @@ CORP = [
         blurb="Clinical tungsten-orange empathy-test instrument."),
 ]
 
-CBANNERS = {
-    "Weyland-Yutani":      ["WEYLAND-YUTANI CORP   -   DIVISION 12", "BUILDING BETTER WORLDS",
-                            "", "SPECIAL ORDER 937: CLASSIFIED"],
-    "MU-TH-UR 6000":       ["INTERFACE 2037", "READY FOR INQUIRY"],
-    "MU-TH-UR 6000 CRT":   ["MU/TH/UR 6000", "INTERFACE 2037 READY FOR INQUIRY",
-                            "", "> WHAT IS THE NATURE OF THE EMERGENCY?"],
-    "Seegson APOLLO":      ["SEEGSON APOLLO", "PERSONAL TERMINAL MODEL 3",
-                            "", "How can I help you return to work?"],
-    "Tyrell Corporation":  ["TYRELL CORPORATION", "MORE HUMAN THAN HUMAN", "", "NEXUS-6 REGISTRY"],
-    "Wallace Corporation": ["WALLACE CORPORATION", "A NEW MODEL OF PERFECTION"],
-    "Voight-Kampff":       ["VOIGHT-KAMPFF EMPATHY TEST", "SUBJECT: UNKNOWN",
-                            "", "You are in a desert, walking along in the sand..."],
-}
 
 CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "MU-TH-UR 6000 CRT", "Seegson APOLLO",
           "Tyrell Corporation", "Voight-Kampff"}
 
 
 # ---------------------------------------------------------------------------
-# Attach banners + bezels to the notional packs
+# Attach CRT bezels to the notional packs (boot banners: see SHELL_KEY below)
 # ---------------------------------------------------------------------------
 
-def _attach(profiles, prefix, banners, tubes):
+def _attach(profiles, prefix, tubes):
     for p in profiles:
-        base = p["Name"].replace(prefix, "")
-        if base in banners:
-            p["Initial Text"] = initial_text(banners[base])
-        if base in tubes:
+        if p["Name"].replace(prefix, "") in tubes:
             p["Background Image Location"] = BEZEL
             p["Background Image Mode"] = 0
             p["Blend"] = 0.45
 
 
-_attach(FICTION,   "Sci-Fi · ",    FBANNERS, FTUBES)
-_attach(AESTHETIC, "Aesthetic · ", ABANNERS, set())
-_attach(CORP,      "Corp · ",      CBANNERS, CTUBES)
+_attach(FICTION, "Sci-Fi · ", FTUBES)
+_attach(CORP,    "Corp · ",   CTUBES)
 
 
 # ---------------------------------------------------------------------------
@@ -864,6 +788,29 @@ SHELL_KEY = {
     "Tyrell Corporation": "tyrell", "Wallace Corporation": "wallace",
     "Voight-Kampff": "vk",
 }
+
+
+# ---------------------------------------------------------------------------
+# Boot command  --  the profile runs tools/retro-boot instead of the login
+# shell (Custom Command). The boot presentation plays with NO prompt on screen
+# (no flicker), then exec's the login shell with $RETRO_MACHINE exported so
+# retro-prompts.zsh wears the period prompt. See tools/retro-boot for knobs
+# (RETRO_BOOT=0 opts a shell out entirely; RETRO_BOOT_THROTTLE quiets rapid
+# tab/split relaunches).
+# ---------------------------------------------------------------------------
+BOOT_CMD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "retro-boot")
+
+
+def attach_boot_command(profiles):
+    for p in profiles:
+        key = SHELL_KEY.get(p["Name"].split(" · ", 1)[-1])
+        if key:
+            p["Custom Command"] = "Yes"
+            p["Command"] = f"{BOOT_CMD} --login {key}"
+
+
+for _group in (PROFILES, FICTION, AESTHETIC, CORP):
+    attach_boot_command(_group)
 
 
 def _era_by_name():

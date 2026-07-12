@@ -200,12 +200,52 @@ Duplicate a `machine(...)` block, rename it (e.g. `"Commodore 64 (daily)"`), and
 raise `min_contrast` / drop `transparency` + `blur`. The distinct name gives it
 its own GUID automatically.
 
-## Boot banners
+## The boot experience
 
-Every profile prints its authentic startup screen when a **new tab** opens
-(existing tabs won't re-run it) — the C64's `READY.`, the Amiga's `AmigaDOS`,
-SunOS's release banner, and so on. It's the profile's `Initial Text`: one safe
-`clear; printf …` command, after which you get a normal shell.
+Every profile **boots like the machine it dresses up as**. Opening a retro
+profile runs `tools/retro-boot` *instead of* your shell (the profile's
+`Command`): it types out the machine's authentic boot chatter with key-click
+sounds, reveals a big ASCII banner inspired by the source material, prints a
+gallery spec line, lets the reveal land for a beat — and only then `exec`s your
+login shell (with `$RETRO_MACHINE` set, so `retro-prompts.zsh` wears the period
+prompt). The art stays on screen; the prompt lands below it. Prefer to be asked?
+`RETRO_BOOT_WAIT=1` holds on a blinking `▸ PRESS ENTER ▸` gate instead.
+
+> Why not `Initial Text`? That old mechanism *types a command into your shell*,
+> so a new tab visibly drew a prompt, echoed the command, cleared, printed, and
+> re-drew — four repaints of flicker. Running the presentation **before the
+> shell exists** paints once, deliberately.
+
+Everything about a machine's boot is plain-text data you can edit:
+
+| File | What it is |
+|---|---|
+| `banners/<key>.txt` | the big ASCII art + its colors (`#:` header: `bg`, `base`, `frame`, `paint <hex> <glyphs>`, `line <n> <hex>` for stripes) |
+| `banners/<key>.boot` | the typed chatter (`#: sound <set>`, `#: cps <n>`, then lines; `@sleep`, `@bell`, `@art`, `@print` directives) |
+| `~/.config/retro-terminals/banners/<key>.txt` | **your art override** — wins over the shipped file |
+| `~/.config/retro-terminals/boot/<key>.boot` | **your chatter override** |
+| `~/.config/retro-terminals/boot/<key>.sh` | full takeover: your script replaces the whole presentation |
+
+Preview art instantly while editing: `tools/retro-banner hal`
+(`--list` for all 39, `--no-color` to check alignment). Painting is glyph-based
+— redraw the shape and the colors follow the characters.
+
+**Sound.** The typing effect plays real key-click samples through `afplay`
+(sets from Klonk: `typewriter thock trek jazzy vibraphone harpsichord kalimba
+manual telegraph water clicky` — each machine picks one in its `.boot` header;
+the ENTER gate rings the typewriter bell). No `afplay`, no configured set, or
+`RETRO_BOOT_SOUND=0` → silent, gracefully.
+
+Knobs (env, all optional):
+
+| Toggle | Effect |
+|---|---|
+| `RETRO_BOOT=0` | skip the whole presentation, straight to the shell |
+| `RETRO_BOOT_WAIT=1` | hold on a blinking `▸ PRESS ENTER ▸` gate after the art (default: a short beat, then straight on) |
+| `RETRO_BOOT_SOUND=0` | mute |
+| `RETRO_BOOT_CPS=n` | typing speed override |
+| `RETRO_BOOT_VOL=0.35` | key-click volume |
+| `RETRO_BOOT_THROTTLE=120` | within N seconds of the last boot of the same machine (split pane, rapid new tab) show the **quick** version — instant art, no typing, no gate. `0` = full ceremony every time |
 
 ## Matching prompts — the `retro` command
 
@@ -280,8 +320,9 @@ regains focus.
 - iTerm2's blur *radius* has no Ghostty analog → `background-blur = true`.
 - Bitmap/pixel fonts render soft: Ghostty has no "anti-aliasing off" toggle, so
   C64 / Terminus / Glass TTY / 3270 / Departure lose the crisp-pixel look.
-- Boot banners, matching prompts, Minimum Contrast, Bright-Bold, Link Color:
-  no clean Ghostty equivalent → dropped. (Banners belong in your shell rc.)
+- Minimum Contrast, Bright-Bold, Link Color: no clean Ghostty equivalent →
+  dropped. (Boot banners DO carry over — the `ghostty-*` launchers stash the
+  machine key and the shell runs the same `tools/retro-boot` presentation.)
 - `bold-color` needs Ghostty ≥ 1.1; older builds log "unknown field" and skip it.
 
 iTerm2 stays the recommended daily driver (scrollback + logging). Ghostty is the

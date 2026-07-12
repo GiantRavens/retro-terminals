@@ -55,7 +55,7 @@ ghostty-random       # roll the dice: a random machine, full font + CRT
 ```
 
 Each opens a **new Ghostty instance** wearing that machine (colors + font + CRT
-shader + title) and **boots** it — banner, period prompt, ENTER gate. See §3 for
+shader + title) and **boots** it — typed chatter, banner, period prompt. See §3 for
 the boot screen and the one-instance-per-machine model.
 
 **b. Make one your everyday default** — create `~/.config/ghostty/config`:
@@ -83,10 +83,10 @@ then reload with **⌘⇧,**.
 ## 3. The boot screen and the launch model
 
 `ghostty-<machine>` and `ghostty-random` don't just recolor — they **boot** the
-window like a period machine: the ASCII banner, a gallery-style spec line
-(`Sci-Fi · HAL 9000 · 2001`), the era-correct prompt (`HAL>`), then it **holds
-for you to press ENTER** before dropping to the shell. That pause is the point —
-the startup screen no longer flashes past.
+window like a period machine: typed boot chatter, the ASCII banner, a
+gallery-style spec line (`Sci-Fi · HAL 9000 · 2001`), the era-correct prompt
+(`HAL>`). The art stays on screen and the prompt lands below it (opt into a
+blinking ENTER gate with `RETRO_BOOT_WAIT=1`).
 
 The prompt and banner are driven by the shell side; wire it once:
 
@@ -97,17 +97,20 @@ source /path/to/retro-terminals/retro-prompts.zsh
 source ~/.config/ghostty/retro/aliases.sh
 ```
 
-| Toggle | Effect |
-|---|---|
-| `RETRO_BOOT_WAIT=0` | skip the ENTER gate — straight to the prompt |
-| `RETRO_BANNER_DIR=DIR` | where paste-your-own banners live (default `~/.config/retro-terminals/banners`) |
+The presentation itself — typed chatter with key-click sounds, the big banner,
+the spec line, the gate — is `tools/retro-boot`, the same engine the iTerm2
+profiles run as their session `Command`. All 39 machines ship art + chatter as
+editable text files in `banners/<key>.txt` / `banners/<key>.boot`; see
+"The boot experience" in README.md for the file format and every knob
+(`RETRO_BOOT=0`, `RETRO_BOOT_WAIT=1` for the ENTER gate, `RETRO_BOOT_SOUND=0`,
+`RETRO_BOOT_THROTTLE`, …).
 
-**Paste your own art.** Drop a file named for the machine
-(`~/.config/retro-terminals/banners/hal`, or `hal.txt`) and it prints verbatim,
-winning over the built-in — embed ANSI color, or leave it plain to ride the
-machine's native palette. Nine machines ship built-in banners (`hal weyland vk
-nostromo tron wopr lcars pipboy c64`); `tools/retro-banner --list` shows them and
-the override path.
+**Paste your own art.** Drop a file at
+`~/.config/retro-terminals/banners/<machine>.txt` and it wins over the shipped
+one — start from a copy: `cp banners/hal.txt ~/.config/retro-terminals/banners/`,
+edit, and preview with `tools/retro-banner hal`. A file with a `#:` header is
+rendered with its own paint rules; a headerless file prints verbatim (embed your
+own ANSI, or leave it plain to ride the machine's palette).
 
 ### One instance per machine — and why
 
@@ -151,6 +154,11 @@ open ghostty-studio.html
   bloom, flicker, brightness, bezel, corner) + a **screen padding** dial. The
   preview runs the same math Ghostty does, so it's a true preview.
 - **CRT toggle** — put the shader on any profile, tube or not.
+- **Wordmark lab** — patorjk's figlet.js + the 16 TAAG fonts the shipped banners
+  were set in, inlined. Type text, pick a face and spacing (kerned/smushed when
+  a word runs wide), **Send to screen** to see it on the tube through the
+  shader, and **Copy as banner file** for a ready-to-paste
+  `banners/<machine>.txt` block with the selected machine's `#:` color header.
 - **Publish** — hit **Copy publish command**, paste it in a terminal. It writes
   the profile **and opens a window wearing it** (a running window keeps its
   launch look — publishing hands you a fresh one).

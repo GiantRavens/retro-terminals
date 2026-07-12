@@ -105,14 +105,21 @@ _retro_reset_palette() {
          "$e" "$a" "$e" "$a" "$e" "$a" "$e" "$a"
 }
 
-# The full boot experience for one machine: repaint + prompt + banner + gate.
+# The full boot experience for one machine: repaint + prompt + presentation.
+# The presentation (typed chatter + art + sounds + ENTER gate) lives in
+# tools/retro-boot — one engine shared by iTerm2 profile Commands, Ghostty
+# launchers, and `retro random`. Fallback path kept for a partial checkout.
 _retro_boot() {
   local key="$1"
   retro "$key"
-  [[ -x "$_RETRO_DIR/tools/retro-banner" ]] && \
-    "$_RETRO_DIR/tools/retro-banner" "$key" 2>/dev/null
-  _retro_spec_line "$key"
-  _retro_press_enter
+  if [[ -x "$_RETRO_DIR/tools/retro-boot" ]]; then
+    "$_RETRO_DIR/tools/retro-boot" "$key"
+  else
+    [[ -x "$_RETRO_DIR/tools/retro-banner" ]] && \
+      "$_RETRO_DIR/tools/retro-banner" "$key" 2>/dev/null
+    _retro_spec_line "$key"
+    _retro_press_enter
+  fi
 }
 
 # --- Ghostty-native boot -----------------------------------------------------
@@ -142,24 +149,27 @@ _retro_spec_line() {
   print -P -- "   %F{8}%B$nm%b%f"
 }
 
-# "Press ENTER to enter the session" — the boot screen HOLDS until you ack it,
-# so the eye-candy no longer flashes past (the whole point). RETRO_BOOT_WAIT=0
-# skips the gate and drops you straight to the prompt.
+# "Press ENTER to enter the session" — opt-in gate (RETRO_BOOT_WAIT=1).
+# Fallback path only; the primary presentation lives in tools/retro-boot.
 _retro_press_enter() {
-  [[ "${RETRO_BOOT_WAIT:-1}" == "1" ]] || return
+  [[ "${RETRO_BOOT_WAIT:-0}" == "1" ]] || return
   [[ -t 0 ]] || return                       # only when stdin is a real terminal
   print -Pn -- "\n   %F{8}▸ press %F{15}%BENTER%b%F{8} to enter ▸%f "
   read -r _retro_ack
   print
 }
 
-# The full native boot screen: prompt + banner + spec line + Enter gate.
+# The full native boot screen: prompt + the retro-boot presentation.
 _retro_boot_native() {
   _retro_wear_prompt "$1"
-  [[ -x "$_RETRO_DIR/tools/retro-banner" ]] && \
-    "$_RETRO_DIR/tools/retro-banner" "$1" 2>/dev/null
-  _retro_spec_line "$1"
-  _retro_press_enter
+  if [[ -x "$_RETRO_DIR/tools/retro-boot" ]]; then
+    "$_RETRO_DIR/tools/retro-boot" "$1"
+  else
+    [[ -x "$_RETRO_DIR/tools/retro-banner" ]] && \
+      "$_RETRO_DIR/tools/retro-banner" "$1" 2>/dev/null
+    _retro_spec_line "$1"
+    _retro_press_enter
+  fi
 }
 
 # Consume the stash a ghostty-* launcher left (read once, then delete so only
