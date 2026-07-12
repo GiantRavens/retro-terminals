@@ -1,0 +1,7 @@
+#: sound manual
+#: cps 18
+ATLANTROPA WORKS   UNIT 09
+@sleep 0.5
+TURBINE ONLINE
+@sleep 0.4
+FOR THE MACHINE AGE

@@ -1,0 +1,14 @@
+#: bg 1A1206
+#: base F5B942
+#: frame F5B942
+#: paint F5A623 ▼▲
+#: paint FFF0C8 ╲╱
+  ╲▼▼▼▼▼╱ ╲▼▼▼▼▼╱ ╲▼▼▼▼▼╱
+   ╲▼▼▼╱   ╲▼▼▼╱   ╲▼▼▼╱
+    ╲▼╱     ╲▼╱     ╲▼╱
+     ╲───────▲───────╱
+      ╲     ▲▲▲     ╱
+       ╲   ▲▲▲▲▲   ╱
+
+   WEYLAND-YUTANI CORP
+   Building Better Worlds

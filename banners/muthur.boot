@@ -1,0 +1,8 @@
+#: sound typewriter
+#: cps 16
+MU/TH/UR 6000
+@sleep 0.4
+INTERFACE 2037 READY FOR INQUIRY
+@sleep 0.8
+
+> WHAT IS THE NATURE OF THE EMERGENCY?

@@ -1,0 +1,8 @@
+#: sound typewriter
+#: cps 18
+ATOMIC ELECTRONIC BRAIN   MODEL 1959
+@sleep 0.5
+THE WORLD OF TOMORROW... TODAY!
+@sleep 0.4
+POWERED BY THE ATOM
+@bell

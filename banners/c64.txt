@@ -1,0 +1,9 @@
+#: bg 40318D
+#: base 7869C4
+#: paint B0A4FF █
+    **** COMMODORE 64 BASIC V2 ****
+
+  64K RAM SYSTEM  38911 BASIC BYTES FREE
+
+  READY.
+  █

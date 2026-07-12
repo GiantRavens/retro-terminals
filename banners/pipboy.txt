@@ -1,0 +1,15 @@
+#: bg 001200
+#: base 18FF6D
+#: frame 12B04A
+#: paint 6BFFA0 >▓
+ ┌──────────────────────────────────────┐
+ │ ROBCO INDUSTRIES (TM) TERMLINK        │
+ │                                       │
+ │ WELCOME TO ROBCO INDUSTRIES (TM)      │
+ │ TERMLINK                              │
+ │                                       │
+ │ >SET TERMINAL/INQUIRE                 │
+ │ RIT-V300                              │
+ │ >ENTER PASSWORD NOW                   │
+ │ ▓                                     │
+ └──────────────────────────────────────┘
