@@ -192,14 +192,31 @@ def render_config(p: dict, shader_path: str) -> str:
 # source. The page previews the CRT with the exact crt.glsl math and emits a
 # paste-to-publish shell command that writes retro/<slug> + the shared shader.
 
-# Boot banners live in build_profiles as per-pack dicts; merge for sample text.
-ALL_BANNERS = {**bp.BANNERS, **bp.FBANNERS, **bp.ABANNERS, **bp.CBANNERS}
+# Boot chatter lives in banners/<key>.boot (one file per machine, shared with
+# tools/retro-boot); read it back for the studio's sample text.
+def boot_chatter(base: str):
+    key = bp.SHELL_KEY.get(base)
+    path = os.path.join(HERE, "banners", f"{key}.boot") if key else ""
+    if not path or not os.path.exists(path):
+        return None
+    lines = []
+    for ln in open(path, encoding="utf-8"):
+        ln = ln.rstrip("\n")
+        if ln.startswith("#"):
+            continue                     # header / comments
+        if ln.startswith("@print "):
+            lines.append(ln[len("@print "):])
+        elif ln.startswith("@"):
+            continue                     # timing/sound directives
+        else:
+            lines.append(ln)
+    return lines or None
 
 
 def profile_json(p: dict, tag: str) -> dict:
     base = base_name(p)
     family, size = parse_font(p["Normal Font"])
-    sample = ALL_BANNERS.get(base) or [base, "", "READY."]
+    sample = boot_chatter(base) or [base, "", "READY."]
     return {
         "name": p["Name"],
         "base": base,
@@ -236,10 +253,27 @@ def build_studio(dest: str) -> str:
         "retroDir": f"{shell_base}/retro",     # -> shell command ("$HOME/…" on paste)
         "shadersDir": f"{shell_base}/shaders",
     }
+    # Wordmark lab: inline figlet.js + the .flf FIGfonts the banners were set
+    # in (tools/figlet-fonts/), keeping the studio a single self-contained file.
+    # "</" is escaped in the JSON so no font byte sequence can close the
+    # surrounding <script> tag.
+    figdir = os.path.join(HERE, "tools", "figlet-fonts")
+    figfonts, figjs = {}, ""
+    if os.path.isdir(figdir):
+        for fn in sorted(os.listdir(figdir)):
+            if fn.endswith(".flf"):
+                with open(os.path.join(figdir, fn), encoding="utf-8", errors="replace") as f:
+                    figfonts[fn[:-4]] = f.read()
+        js = os.path.join(figdir, "figlet.js")
+        if os.path.exists(js):
+            with open(js) as f:
+                figjs = f.read()
     html = (tmpl
             .replace("/*__PROFILES__*/", json.dumps(profiles))
             .replace("/*__SHADER__*/", json.dumps(shader_src))
-            .replace("/*__STUDIO__*/", json.dumps(studio)))
+            .replace("/*__STUDIO__*/", json.dumps(studio))
+            .replace("/*__FIGFONTS__*/", json.dumps(figfonts).replace("</", "<\\/"))
+            .replace("/*__FIGLETJS__*/", figjs))
     out = os.path.join(HERE, "ghostty-studio.html")
     with open(out, "w") as f:
         f.write(html)

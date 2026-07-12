@@ -110,6 +110,20 @@
   textarea#text{min-height:90px}
   textarea:focus{outline:1px solid var(--ink);outline-offset:1px}
 
+  /* wordmark lab */
+  .wm-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+  .wm-controls input[type=text]{flex:1 1 180px;font-family:var(--mono);font-size:13px;
+    background:#0c0e0c;color:var(--ink);border:1px solid #000;border-radius:7px;padding:9px 12px}
+  .wm-controls input[type=text]:focus{outline:1px solid var(--ink);outline-offset:1px}
+  .wm-controls select{font:inherit;font-size:11px;color:var(--silk);
+    background:linear-gradient(#2b2e33,#212327);border:1px solid #000;border-top-color:#3a3d43;
+    border-radius:7px;padding:8px 9px;cursor:pointer}
+  .wm-size{font-size:10px;color:var(--silk-dim);letter-spacing:.06em;white-space:nowrap}
+  .wm-size.wide{color:#e0a040}
+  pre#wmOut{margin:0 0 12px;padding:14px;border-radius:8px;border:1px solid #000;
+    overflow-x:auto;font-family:var(--mono);font-size:11px;line-height:1.25;
+    box-shadow:0 6px 18px -10px #000 inset;min-height:60px}
+
   .foot{text-align:center;color:var(--silk-dim);font-size:11px;letter-spacing:.04em;padding-top:2px}
   .foot b{color:var(--silk)}
   @keyframes hum{0%,100%{opacity:1}50%{opacity:.78}}
@@ -151,6 +165,32 @@
   </div>
 
   <div class="panel">
+    <h2>Wordmark lab <span>figlet.js · the TAAG fonts</span></h2>
+    <div class="wm-controls">
+      <input type="text" id="wmText" value="READY." spellcheck="false" autocomplete="off">
+      <select id="wmFont" title="figlet font"></select>
+      <select id="wmLayout" title="character spacing">
+        <option value="default">default spacing</option>
+        <option value="fitted">kerned (tighter)</option>
+        <option value="universal smushing">smushed (tightest)</option>
+        <option value="full">full width</option>
+      </select>
+      <span class="wm-size" id="wmSize"></span>
+    </div>
+    <pre id="wmOut"></pre>
+    <div class="actions">
+      <button id="wmSend">Send to screen ⤴</button>
+      <button id="wmCopyBanner">Copy as banner file</button>
+      <button id="wmCopyRaw">Copy text</button>
+    </div>
+    <p class="note">Type a wordmark, pick a face, and <b>Send to screen</b> to see it on the tube
+      through the CRT shader in the selected machine's palette. <b>Copy as banner file</b> emits a
+      ready-to-paste <code>banners/&lt;machine&gt;.txt</code> block — the <code>#:</code> color
+      header is filled from the selected machine. Banners read best at ≤ 66 columns; try
+      <i>kerned</i> or <i>smushed</i> spacing when a word runs wide.</p>
+  </div>
+
+  <div class="panel">
     <h2>Publish back to Ghostty</h2>
     <div class="actions">
       <button id="copyPublish">Copy publish command</button>
@@ -171,6 +211,11 @@
     <b>build_profiles.py</b>; shader from <b>shaders/crt.glsl</b>. Re-run <b>build_ghostty.py --studio</b> after editing the SPEC.</p>
 </div>
 
+<script>
+/* figlet.js — patorjk's FIGfont driver (MIT), inlined by build_ghostty.py
+   from tools/figlet-fonts/figlet.js so the studio stays self-contained. */
+/*__FIGLETJS__*/
+</script>
 <script>
 "use strict";
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -325,6 +370,7 @@ function selectProfile(p){
   document.getElementById("text").value=p.sample;
   P.pad=p.pad; syncDial("pad");   // padding is per-profile; reset it on switch
   drawScreen(); updateOutputs();
+  if(window._wmRefresh) window._wmRefresh();   // recolor the wordmark lab preview
 }
 
 // ===================== dials =====================
@@ -403,6 +449,58 @@ function wireCopy(id,get){
 wireCopy("copyPublish",publishCmd);
 wireCopy("copyConfig",configText);
 wireCopy("copyShader",tweakedShader);
+
+// ===================== wordmark lab =====================
+// FIGfont sources injected by build_ghostty.py from tools/figlet-fonts/*.flf —
+// the exact fonts the shipped banners/<key>.txt wordmarks were set in.
+const FIGFONTS = /*__FIGFONTS__*/;
+(function(){
+  if (typeof figlet === "undefined" || !FIGFONTS || !Object.keys(FIGFONTS).length) return;
+  Object.entries(FIGFONTS).forEach(([n,s])=>{ try{ figlet.parseFont(n,s); }catch(e){} });
+  const $=id=>document.getElementById(id);
+  const sel=$("wmFont");
+  Object.keys(FIGFONTS).sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()))
+    .forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent=n; sel.appendChild(o); });
+  if (FIGFONTS["ANSI Shadow"]) sel.value="ANSI Shadow";
+
+  function wmLines(){
+    let out="";
+    try{ out=figlet.textSync($("wmText").value||" ",
+      {font:sel.value, horizontalLayout:$("wmLayout").value}); }
+    catch(e){ out="(that text doesn't render in this font)"; }
+    const lines=out.split("\n").map(l=>l.replace(/\s+$/,""));
+    while(lines.length && !lines[0]) lines.shift();
+    while(lines.length && !lines[lines.length-1]) lines.pop();
+    return lines;
+  }
+  function renderWM(){
+    const lines=wmLines(), w=lines.reduce((m,l)=>Math.max(m,l.length),0);
+    const sz=$("wmSize");
+    sz.textContent=lines.length?`${w} × ${lines.length}`:"";
+    sz.classList.toggle("wide", w>66);
+    const pre=$("wmOut");
+    pre.textContent=lines.join("\n");
+    pre.style.background=cur.bg; pre.style.color=cur.fg;
+    return lines;
+  }
+  window._wmRefresh=renderWM;
+  const hx=c=>c.replace("#","").toUpperCase();
+  function bannerBlock(){
+    // ansi[8] (bright black) doubles as the machine's dim/frame tone — the same
+    // convention the shipped banners use for their #: frame color.
+    return [`#: bg ${hx(cur.bg)}`, `#: base ${hx(cur.fg)}`, `#: frame ${hx(cur.ansi[8])}`,
+            ...renderWM(), ""].join("\n");
+  }
+  ["wmText","wmFont","wmLayout"].forEach(id=>{
+    $(id).addEventListener("input",renderWM); $(id).addEventListener("change",renderWM);
+  });
+  $("wmSend").addEventListener("click",()=>{
+    $("text").value=renderWM().join("\n"); drawScreen();
+  });
+  wireCopy("wmCopyBanner",bannerBlock);
+  wireCopy("wmCopyRaw",()=>renderWM().join("\n"));
+  renderWM();
+})();
 
 // ===================== boot =====================
 DIALS.forEach(([k])=>syncDial(k));
