@@ -1,4 +1,3 @@
-#: sound harpsichord
 #: cps 18
 TYRELL CORPORATION
 @sleep 0.5

@@ -1,4 +1,3 @@
-#: sound clicky
 #: cps 22
 SEEGSON APOLLO
 @sleep 0.4

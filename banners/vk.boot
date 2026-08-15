@@ -1,4 +1,3 @@
-#: sound manual
 #: cps 16
 VOIGHT-KAMPFF EMPATHY TEST
 @sleep 0.5

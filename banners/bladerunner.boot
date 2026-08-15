@@ -1,4 +1,3 @@
-#: sound manual
 #: cps 18
 ESPER   -   TYRELL CORP
 @sleep 0.5

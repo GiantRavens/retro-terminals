@@ -1,4 +1,3 @@
-#: sound typewriter
 #: cps 18
 ATOMIC ELECTRONIC BRAIN   MODEL 1959
 @sleep 0.5

@@ -1,4 +1,3 @@
-#: sound manual
 #: cps 20
 WEYLAND-YUTANI CORP   -   DIVISION 12
 @sleep 0.4

@@ -1,4 +1,3 @@
-#: sound vibraphone
 #: cps 14
 HAL 9000   HEURISTIC ALGORITHMIC COMPUTER
 @sleep 0.8

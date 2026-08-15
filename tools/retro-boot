@@ -2,7 +2,7 @@
 # retro-boot — the deliberate boot experience for one machine.
 #
 # One engine, per-machine data (banners/<key>.boot + banners/<key>.txt):
-# type out the machine's boot chatter with key-click sounds, reveal the big
+# type out the machine's boot chatter, reveal the big
 # ASCII banner, print the gallery spec line, hold on a blinking ENTER gate,
 # then (with --login) exec your real shell.
 #
@@ -16,10 +16,10 @@
 #                                     #   exec. Either way: no prompt flicker.
 #
 # Chatter script: banners/<key>.boot — lines are typed out; directives:
-#   #: sound <set>     klonk key-click set (~/.hammerspoon/Spoons/Klonk.spoon/sounds)
+#   #: sound <set>     reserved metadata; currently ignored (boots are silent)
 #   #: cps <n>         typing speed, characters per second
 #   @sleep <sec>       pause
-#   @bell              terminal bell + enter-key sound
+#   @bell              reserved timing marker; currently silent
 #   @art               render the big banner here (default: after all lines)
 #   @print <text>      print a line instantly (no typing)
 #
@@ -31,9 +31,7 @@
 #   RETRO_BOOT=0             skip the presentation entirely
 #   RETRO_BOOT_WAIT=1        hold on a blinking ENTER gate (default: no gate,
 #                            just a short beat after the art)
-#   RETRO_BOOT_SOUND=0       mute
 #   RETRO_BOOT_CPS=n         override typing speed
-#   RETRO_BOOT_VOL=0.35      key-click volume
 #   RETRO_BOOT_THROTTLE=120  within this many seconds of the last boot of the
 #                            same machine (think: split pane, new tab), do the
 #                            QUICK version — instant art, no typing, no gate.
@@ -49,7 +47,6 @@ RETRO_DIR="${SELF:h:h}"
 BANNERS_DIR="$RETRO_DIR/banners"
 USER_BOOT_DIR="${RETRO_BOOT_DIR:-$HOME/.config/retro-terminals/boot}"
 STATE_DIR="$HOME/.config/retro-terminals"
-SND_ROOT="${RETRO_SOUND_ROOT:-$HOME/.hammerspoon/Spoons/Klonk.spoon/sounds}"
 
 LOGIN=0 QUICK=0 KEY=""
 for a in "$@"; do
@@ -106,29 +103,6 @@ msleep() {  # $1 = milliseconds (fractions fine — zselect wants integer centis
   return 0
 }
 
-# ── sound: klonk key-click sets via afplay (macOS); silent no-op elsewhere ───
-typeset -ga _SND_KEYS
-typeset -g  _SND_ENTER="" _SND_OK=0
-snd_init() {  # $1 = set name
-  [[ "${RETRO_BOOT_SOUND:-1}" == "1" ]] || return
-  command -v afplay >/dev/null 2>&1 || return
-  local dir="$SND_ROOT/${1:-typewriter}"
-  [[ -d "$dir" ]] || dir="$SND_ROOT/typewriter"
-  [[ -d "$dir" ]] || return
-  _SND_KEYS=("$dir"/down<->.wav(N) "$dir"/click<->.wav(N))
-  [[ -f "$dir/enter.wav" ]] && _SND_ENTER="$dir/enter.wav"
-  (( ${#_SND_KEYS} )) && _SND_OK=1
-}
-snd_key() {
-  (( _SND_OK )) || return 0
-  (( RANDOM % 100 < ${RETRO_BOOT_SFX_DENSITY:-40} )) || return 0
-  afplay -v "${RETRO_BOOT_VOL:-0.35}" "${_SND_KEYS[RANDOM % ${#_SND_KEYS} + 1]}" &>/dev/null &!
-}
-snd_enter() {
-  [[ -n "$_SND_ENTER" ]] || return 0
-  afplay -v "${RETRO_BOOT_VOL:-0.35}" "$_SND_ENTER" &>/dev/null &!
-}
-
 # ── the typewriter ───────────────────────────────────────────────────────────
 typeset -g CPS=22
 typeline() {  # $1 = text
@@ -137,7 +111,6 @@ typeline() {  # $1 = text
   for (( i = 1; i <= ${#s}; i++ )); do
     ch="${s[i]}"
     printf '%s' "$ch"
-    [[ "$ch" == " " ]] || snd_key
     msleep $(( base / 2 + RANDOM % base ))     # jitter: 0.5x..1.5x the base delay
   done
   print
@@ -177,7 +150,6 @@ gate() {
     on=$(( 1 - on ))
     read -t 0.55 -k 1 -s < /dev/tty && break
   done
-  snd_enter
   printf '\r%*s\r' 24 ''
 }
 
@@ -215,20 +187,18 @@ bootfile=""
 [[ -r "$USER_BOOT_DIR/$KEY.boot" ]] && bootfile="$USER_BOOT_DIR/$KEY.boot"
 [[ -z "$bootfile" && -r "$BANNERS_DIR/$KEY.boot" ]] && bootfile="$BANNERS_DIR/$KEY.boot"
 
-# Header: sound set + cps.
-sound_set="typewriter"
+# Header: typing speed. Sound metadata is deliberately ignored while the
+# project is silent-by-design, so old/custom chatter files remain compatible.
 if [[ -n "$bootfile" ]]; then
   while IFS= read -r ln; do
     [[ "$ln" == '#:'* ]] || break
     set -- ${=ln#\#:}
     case "$1" in
-      sound) sound_set="$2" ;;
       cps)   CPS="$2" ;;
     esac
   done < "$bootfile"
 fi
 [[ -n "${RETRO_BOOT_CPS:-}" ]] && CPS="$RETRO_BOOT_CPS"
-snd_init "$sound_set"
 
 if (( QUICK )); then
   # Quick boot: inside tmux the attach just wiped the full presentation, so
@@ -247,7 +217,7 @@ else
       case "$ln" in
         '#:'*|'#'*)  continue ;;
         '@sleep '*)  msleep $(( ${${ln#@sleep }:-0.3} * 1000 )) ;;
-        '@bell')     printf '\a'; snd_enter ;;
+        '@bell')     : ;;
         '@art')      show_art; art_done=1 ;;
         '@print '*)  print -- "   ${ln#@print }" ;;
         '')          print ;;

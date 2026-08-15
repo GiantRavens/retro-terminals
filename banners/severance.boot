@@ -1,4 +1,3 @@
-#: sound harpsichord
 #: cps 20
 LUMON INDUSTRIES
 @sleep 0.6

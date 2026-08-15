@@ -1,4 +1,3 @@
-#: sound clicky
 #: cps 30
 Starting MS-DOS...
 @sleep 0.8

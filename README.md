@@ -38,6 +38,25 @@ are embedded, so they show for everyone; the rest need a local install). The
 playground is a live WebGL curved-glass CRT. The **studio** browses all 39
 palettes, tunes the CRT live, and publishes a ready-to-use Ghostty profile.
 
+To tour the profiles as real terminal windows instead of browser previews:
+
+```bash
+tools/retro-demo                         # detect iTerm2 / Ghostty and ask
+tools/retro-demo --terminal ghostty      # force one backend
+tools/retro-demo --group sci-fi          # tour one collection
+tools/retro-demo --delay 8 --shuffle     # unattended slideshow
+tools/retro-demo --group retro --limit 3 # a short sampler
+tools/retro-demo --manifest              # inspect the launch plan only
+```
+
+The controller opens one disposable window at a time. Press Enter in the
+controller to close that exact window and advance (`b` goes back, `q` quits).
+It tracks iTerm2 by window ID and Ghostty by spawned process, so existing user
+windows are never closed. Ghostty requires generated configs from
+`python3 build_ghostty.py`; iTerm2 requires the profiles from `./install.sh`.
+Demo Ghostty instances are pinned to an 80×25 grid and opt out of macOS window
+restoration, preventing font-specific profiles from inheriting oversized state.
+
 ## Install (build them into your iTerm2)
 
 ```bash
@@ -204,11 +223,13 @@ its own GUID automatically.
 
 Every profile **boots like the machine it dresses up as**. Opening a retro
 profile runs `tools/retro-boot` *instead of* your shell (the profile's
-`Command`): it types out the machine's authentic boot chatter with key-click
-sounds, reveals a big ASCII banner inspired by the source material, prints a
+`Command`): it silently types out the machine's authentic boot chatter,
+reveals a big ASCII banner inspired by the source material, prints a
 gallery spec line, lets the reveal land for a beat — and only then `exec`s your
-login shell (with `$RETRO_MACHINE` set, so `retro-prompts.zsh` wears the period
-prompt). The art stays on screen; the prompt lands below it. Prefer to be asked?
+login shell (with `$RETRO_MACHINE` set so `retro-prompts.zsh` knows which boot
+to present). The art stays on screen; your Starship prompt lands below it.
+Set `RETRO_PROMPT_ON_START=1` to opt into the machine's period prompt instead.
+Prefer to be asked?
 `RETRO_BOOT_WAIT=1` holds on a blinking `▸ PRESS ENTER ▸` gate instead.
 
 > Why not `Initial Text`? That old mechanism *types a command into your shell*,
@@ -221,7 +242,7 @@ Everything about a machine's boot is plain-text data you can edit:
 | File | What it is |
 |---|---|
 | `banners/<key>.txt` | the big ASCII art + its colors (`#:` header: `bg`, `base`, `frame`, `paint <hex> <glyphs>`, `line <n> <hex>` for stripes) |
-| `banners/<key>.boot` | the typed chatter (`#: sound <set>`, `#: cps <n>`, then lines; `@sleep`, `@bell`, `@art`, `@print` directives) |
+| `banners/<key>.boot` | the typed chatter (`#: cps <n>`, then lines; `@sleep`, `@bell`, `@art`, `@print` directives; legacy sound metadata is ignored) |
 | `~/.config/retro-terminals/banners/<key>.txt` | **your art override** — wins over the shipped file |
 | `~/.config/retro-terminals/boot/<key>.boot` | **your chatter override** |
 | `~/.config/retro-terminals/boot/<key>.sh` | full takeover: your script replaces the whole presentation |
@@ -230,11 +251,9 @@ Preview art instantly while editing: `tools/retro-banner hal`
 (`--list` for all 39, `--no-color` to check alignment). Painting is glyph-based
 — redraw the shape and the colors follow the characters.
 
-**Sound.** The typing effect plays real key-click samples through `afplay`
-(sets from Klonk: `typewriter thock trek jazzy vibraphone harpsichord kalimba
-manual telegraph water clicky` — each machine picks one in its `.boot` header;
-the ENTER gate rings the typewriter bell). No `afplay`, no configured set, or
-`RETRO_BOOT_SOUND=0` → silent, gracefully.
+**Sound.** Boot presentations are intentionally silent. Legacy `#: sound` and
+`@bell` directives remain accepted as no-ops so existing chatter overrides do
+not break; sound design can return later as an intentional, opt-in system.
 
 Knobs (env, all optional):
 
@@ -242,9 +261,7 @@ Knobs (env, all optional):
 |---|---|
 | `RETRO_BOOT=0` | skip the whole presentation, straight to the shell |
 | `RETRO_BOOT_WAIT=1` | hold on a blinking `▸ PRESS ENTER ▸` gate after the art (default: a short beat, then straight on) |
-| `RETRO_BOOT_SOUND=0` | mute |
 | `RETRO_BOOT_CPS=n` | typing speed override |
-| `RETRO_BOOT_VOL=0.35` | key-click volume |
 | `RETRO_BOOT_THROTTLE=120` | within N seconds of the last boot of the same machine (split pane, rapid new tab) show the **quick** version — instant art, no typing, no gate. `0` = full ceremony every time |
 
 ## Matching prompts — the `retro` command

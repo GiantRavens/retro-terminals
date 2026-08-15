@@ -1,4 +1,3 @@
-#: sound thock
 #: cps 26
 ENCOM MAINFRAME  OS-12
 @sleep 0.4

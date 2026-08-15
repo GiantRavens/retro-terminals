@@ -84,9 +84,9 @@ then reload with **⌘⇧,**.
 
 `ghostty-<machine>` and `ghostty-random` don't just recolor — they **boot** the
 window like a period machine: typed boot chatter, the ASCII banner, a
-gallery-style spec line (`Sci-Fi · HAL 9000 · 2001`), the era-correct prompt
-(`HAL>`). The art stays on screen and the prompt lands below it (opt into a
-blinking ENTER gate with `RETRO_BOOT_WAIT=1`).
+gallery-style spec line (`Sci-Fi · HAL 9000 · 2001`), then your Starship prompt.
+Set `RETRO_PROMPT_ON_START=1` for the era-correct prompt (`HAL>`), or opt into a
+blinking ENTER gate with `RETRO_BOOT_WAIT=1`.
 
 The prompt and banner are driven by the shell side; wire it once:
 
@@ -97,12 +97,12 @@ source /path/to/retro-terminals/retro-prompts.zsh
 source ~/.config/ghostty/retro/aliases.sh
 ```
 
-The presentation itself — typed chatter with key-click sounds, the big banner,
+The presentation itself — silent typed chatter, the big banner,
 the spec line, the gate — is `tools/retro-boot`, the same engine the iTerm2
 profiles run as their session `Command`. All 39 machines ship art + chatter as
 editable text files in `banners/<key>.txt` / `banners/<key>.boot`; see
 "The boot experience" in README.md for the file format and every knob
-(`RETRO_BOOT=0`, `RETRO_BOOT_WAIT=1` for the ENTER gate, `RETRO_BOOT_SOUND=0`,
+(`RETRO_BOOT=0`, `RETRO_BOOT_WAIT=1` for the ENTER gate,
 `RETRO_BOOT_THROTTLE`, …).
 
 **Paste your own art.** Drop a file at
@@ -124,14 +124,15 @@ That's the model, not a tax:
 
 - **More windows of the same machine** — inside a machine's window, **⌘N / ⌘T**
   open more windows/tabs of *that* machine, no new instance. Each inherits
-  `env = RETRO_MACHINE=<key>` (baked into the config) and quietly wears the
-  period prompt — without re-running the banner + gate.
+  `env = RETRO_MACHINE=<key>` (baked into the config) and keeps Starship —
+  without re-running the banner + gate. `RETRO_PROMPT_ON_START=1` opts into the
+  period prompt.
 - **A different machine** — run another `ghostty-<machine>` / `ghostty-random`.
   That's the only time you spawn a new instance.
 
 So: launch a machine once, live in it with ⌘N/⌘T; spawn a new instance only to
 change machines. The theatrical boot fires on the fresh launch; sibling windows
-just wear the prompt.
+open quietly.
 
 > Why not one instance recoloring per window? OSC escapes can repaint the 16
 > colors live but **can't change the font or shader** — only a real config load

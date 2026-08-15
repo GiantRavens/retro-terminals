@@ -1,4 +1,3 @@
-#: sound trek
 #: cps 28
 LCARS 24-ALPHA
 @sleep 0.3

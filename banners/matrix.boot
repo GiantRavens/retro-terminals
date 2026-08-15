@@ -1,4 +1,3 @@
-#: sound thock
 #: cps 12
 Wake up, Neo...
 @sleep 1.2

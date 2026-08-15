@@ -1,4 +1,3 @@
-#: sound thock
 #: cps 20
 ONO-SENDAI CYBERSPACE 7
 @sleep 0.6

@@ -1,4 +1,3 @@
-#: sound telegraph
 #: cps 16
 AETHERIC DIFFERENCE ENGINE  MK.III
 @sleep 0.5

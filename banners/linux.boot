@@ -1,4 +1,3 @@
-#: sound thock
 #: cps 30
 Linux 2.0.36 (i586)
 @sleep 0.3

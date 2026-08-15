@@ -1,4 +1,3 @@
-#: sound jazzy
 #: cps 24
 OUTRUN // 1986
 @sleep 0.4

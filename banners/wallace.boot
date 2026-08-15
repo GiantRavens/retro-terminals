@@ -1,4 +1,3 @@
-#: sound water
 #: cps 16
 WALLACE CORPORATION
 @sleep 0.6

@@ -1,4 +1,3 @@
-#: sound vibraphone
 #: cps 18
 VAPOR OS   v3.11
 @sleep 0.5

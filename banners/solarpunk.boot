@@ -1,4 +1,3 @@
-#: sound kalimba
 #: cps 22
 SOLARPUNK COLLECTIVE // NODE 7
 @sleep 0.4

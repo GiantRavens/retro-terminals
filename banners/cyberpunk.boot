@@ -1,4 +1,3 @@
-#: sound thock
 #: cps 26
 NIGHT CITY // NETWATCH
 @sleep 0.4

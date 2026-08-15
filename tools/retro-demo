@@ -1,0 +1,317 @@
+#!/usr/bin/env python3
+"""Browse the real retro-terminal profiles, one disposable window at a time."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import random
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+DEMO_COLUMNS = 80
+DEMO_ROWS = 25
+
+import build_profiles as bp  # noqa: E402
+from build_ghostty import GROUPS, base_name, kebab  # noqa: E402
+
+
+def profile_manifest(group_filter: str) -> list[dict[str, str]]:
+    """Cheap observation pass: classify every profile before launching any."""
+    profiles = []
+    for group, tag in GROUPS:
+        if group_filter != "all" and tag != group_filter:
+            continue
+        for profile in group:
+            base = base_name(profile)
+            profiles.append(
+                {
+                    "group": tag,
+                    "name": profile["Name"],
+                    "machine": base,
+                    "key": bp.SHELL_KEY[base],
+                    "slug": f"{tag}-{kebab(base)}",
+                }
+            )
+    return profiles
+
+
+def ghostty_binary() -> Path | None:
+    found = shutil.which("ghostty")
+    candidates = [
+        Path(found) if found else None,
+        Path("/Applications/Ghostty.app/Contents/MacOS/ghostty"),
+        Path.home() / "Applications/Ghostty.app/Contents/MacOS/ghostty",
+    ]
+    return next((path for path in candidates if path and path.is_file()), None)
+
+
+def iterm_available() -> bool:
+    if sys.platform != "darwin" or not shutil.which("osascript"):
+        return False
+    return any(
+        path.exists()
+        for path in (
+            Path("/Applications/iTerm.app"),
+            Path.home() / "Applications/iTerm.app",
+            Path("/Applications/iTerm2.app"),
+        )
+    )
+
+
+def make_manifest(profiles: list[dict[str, str]], requested: str) -> dict:
+    ghostty = ghostty_binary()
+    ghostty_dir = Path.home() / ".config/ghostty/retro"
+    candidates = {
+        "iterm2": {
+            "available": iterm_available(),
+            "strategy": "AppleScript window ID; close only the window created by the demo",
+            "prediction": "ready" if iterm_available() else "application not detected",
+        },
+        "ghostty": {
+            "available": ghostty is not None,
+            "strategy": (
+                "LaunchServices plus new-PID observation; terminate only the spawned instance"
+                if sys.platform == "darwin"
+                else "direct config-bound process; terminate only the spawned instance"
+            ),
+            "prediction": (
+                "ready"
+                if ghostty and all((ghostty_dir / p["slug"]).is_file() for p in profiles)
+                else "application or generated configs missing"
+            ),
+            "binary": str(ghostty) if ghostty else None,
+            "config_dir": str(ghostty_dir),
+        },
+    }
+    return {
+        "event": "retro_demo.manifest",
+        "platform": sys.platform,
+        "requested_backend": requested,
+        "profile_count": len(profiles),
+        "groups": sorted({p["group"] for p in profiles}),
+        "candidates": candidates,
+        "success_criteria": "one tracked window per profile; previous window closed before next launch",
+        "confidence": 0.95 if any(v["prediction"] == "ready" for v in candidates.values()) else 0.25,
+    }
+
+
+def choose_backend(manifest: dict, requested: str) -> str:
+    candidates = manifest["candidates"]
+    ready = [name for name, info in candidates.items() if info["prediction"] == "ready"]
+    if requested != "auto":
+        if candidates[requested]["prediction"] != "ready":
+            raise SystemExit(f"{requested} is not ready: {candidates[requested]['prediction']}")
+        return requested
+    if not ready:
+        raise SystemExit(
+            "No demo backend is ready. Install/build iTerm2 profiles with ./install.sh, "
+            "or Ghostty configs with python3 build_ghostty.py."
+        )
+    if len(ready) == 1 or not sys.stdin.isatty():
+        return ready[0]
+    print("Terminal backend:  [1] iTerm2  [2] Ghostty")
+    while True:
+        answer = input("Choose 1 or 2: ").strip()
+        if answer in {"1", "2"}:
+            selected = ("iterm2", "ghostty")[int(answer) - 1]
+            if selected in ready:
+                return selected
+            print(f"{selected} is not ready on this machine.")
+
+
+class ITermWindow:
+    def __init__(self, profile: dict[str, str], dry_run: bool = False):
+        self.window_id: str | None = None
+        self.profile = profile
+        self.dry_run = dry_run
+
+    def open(self) -> None:
+        if self.dry_run:
+            return
+        quoted = '"' + self.profile["name"].replace("\\", "\\\\").replace('"', '\\"') + '"'
+        script = (
+            'tell application id "com.googlecode.iterm2"\n'
+            f"set demoWindow to (create window with profile {quoted})\n"
+            "return id of demoWindow\nend tell"
+        )
+        result = subprocess.run(["osascript", "-e", script], text=True, capture_output=True)
+        if result.returncode:
+            raise RuntimeError(result.stderr.strip() or "iTerm2 AppleScript launch failed")
+        self.window_id = result.stdout.strip()
+
+    def close(self) -> None:
+        if self.dry_run or not self.window_id:
+            return
+        script = (
+            'tell application id "com.googlecode.iterm2"\n'
+            f"if exists (first window whose id is {self.window_id}) then "
+            f"close (first window whose id is {self.window_id})\nend tell"
+        )
+        subprocess.run(["osascript", "-e", script], capture_output=True, check=False)
+
+
+class GhosttyWindow:
+    def __init__(self, profile: dict[str, str], binary: str, dry_run: bool = False):
+        self.profile = profile
+        self.binary = binary
+        self.dry_run = dry_run
+        self.process: subprocess.Popen | None = None
+        self.pid: int | None = None
+
+    def launch_arguments(self) -> list[str]:
+        """Deterministic geometry; never inherit a prior macOS Ghostty window."""
+        config = Path.home() / ".config/ghostty/retro" / self.profile["slug"]
+        boot = ROOT / "tools/retro-boot"
+        return [
+            f"--config-file={config}",
+            f"--window-width={DEMO_COLUMNS}",
+            f"--window-height={DEMO_ROWS}",
+            "--window-save-state=never",
+            "-e",
+            str(boot),
+            "--login",
+            self.profile["key"],
+        ]
+
+    @staticmethod
+    def _mac_pids() -> set[int]:
+        """Return main Ghostty app PIDs, excluding helpers and the observer."""
+        result = subprocess.run(
+            ["ps", "-axo", "pid=,command="], text=True, capture_output=True, check=True
+        )
+        marker = "/Ghostty.app/Contents/MacOS/ghostty"
+        return {
+            int(line.strip().split(None, 1)[0])
+            for line in result.stdout.splitlines()
+            if marker in line and line.strip().split(None, 1)[1].split(None, 1)[0].endswith(marker)
+        }
+
+    def open(self) -> None:
+        if self.dry_run:
+            return
+        arguments = self.launch_arguments()
+        if sys.platform == "darwin":
+            before = self._mac_pids()
+            subprocess.run(["open", "-na", "Ghostty", "--args", *arguments], check=True)
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                created = self._mac_pids() - before
+                if created:
+                    self.pid = min(created)
+                    return
+                time.sleep(0.05)
+            raise RuntimeError("Ghostty launched but its new process could not be identified")
+        self.process = subprocess.Popen([self.binary, *arguments], start_new_session=True)
+        self.pid = self.process.pid
+
+    def close(self) -> None:
+        if self.dry_run or not self.pid:
+            return
+        if sys.platform == "darwin":
+            try:
+                os.kill(self.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            return
+        if self.process and self.process.poll() is None:
+            os.killpg(self.pid, signal.SIGTERM)
+            try:
+                self.process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                os.killpg(self.pid, signal.SIGKILL)
+                self.process.wait()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Open each retro profile in a disposable real terminal window."
+    )
+    parser.add_argument("--terminal", choices=("auto", "iterm2", "ghostty"), default="auto")
+    parser.add_argument("--group", choices=("all", "retro", "sci-fi", "aesthetic", "corp"), default="all")
+    parser.add_argument("--delay", type=float, default=0, metavar="SECONDS", help="advance automatically")
+    parser.add_argument("--limit", type=int, metavar="N", help="show only the first N selected profiles")
+    parser.add_argument("--shuffle", action="store_true")
+    parser.add_argument("--manifest", action="store_true", help="print the observation manifest and exit")
+    parser.add_argument("--dry-run", action="store_true", help=argparse.SUPPRESS)
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    if args.delay < 0:
+        raise SystemExit("--delay must be zero or greater")
+    if args.limit is not None and args.limit < 1:
+        raise SystemExit("--limit must be at least 1")
+    profiles = profile_manifest(args.group)
+    if args.shuffle:
+        random.shuffle(profiles)
+    if args.limit:
+        profiles = profiles[: args.limit]
+    manifest = make_manifest(profiles, args.terminal)
+    if args.manifest:
+        print(json.dumps(manifest, indent=2))
+        return 0
+    backend = choose_backend(manifest, args.terminal) if not args.dry_run else (
+        "iterm2" if args.terminal == "auto" else args.terminal
+    )
+    print(
+        f"retro-demo: {len(profiles)} profiles via {backend}; "
+        + (f"{args.delay:g}s each" if args.delay else "Enter=next, b=back, q=quit")
+    )
+    print("The demo closes only the window/process it created.\n")
+    index = 0
+    opened = succeeded = failed = 0
+    while 0 <= index < len(profiles):
+        profile = profiles[index]
+        window = (
+            ITermWindow(profile, args.dry_run)
+            if backend == "iterm2"
+            else GhosttyWindow(profile, manifest["candidates"]["ghostty"]["binary"] or "ghostty", args.dry_run)
+        )
+        print(f"[{index + 1:02}/{len(profiles)}] {profile['name']}", flush=True)
+        opened += 1
+        try:
+            window.open()
+            succeeded += 1
+            if args.delay:
+                time.sleep(args.delay)
+                action = ""
+            else:
+                action = input("  Enter next · b back · q quit: ").strip().lower()
+        except (subprocess.SubprocessError, OSError, RuntimeError) as error:
+            failed += 1
+            print(f"  launch_failed: {type(error).__name__}: {error}", file=sys.stderr)
+            action = ""
+        except (EOFError, KeyboardInterrupt):
+            action = "q"
+            print()
+        finally:
+            window.close()
+        if action == "q":
+            break
+        index += -1 if action == "b" and index > 0 else 1
+    print(
+        json.dumps(
+            {
+                "event": "retro_demo.finish",
+                "opened": opened,
+                "succeeded": succeeded,
+                "failed": failed,
+                "completion": "quit" if index < len(profiles) else "complete",
+            }
+        )
+    )
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
