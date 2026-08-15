@@ -725,42 +725,54 @@ FICTION = [
     # is unicase, so these two machines are capitals-only by construction.
     machine("Empire", "Radiant Prime Mono", 12, ns="Sci-Fi",
         iterm_font="RadiantPrimeMono-Regular",
-        bg="0B0E1C", fg="E0BC6A", bold="FFE8B0",
-        cursor="F0C86A", cursor_text="0B0E1C",
-        selection="2A2A3E", selected_text="FFE8B0", link="7C9EDC",
-        cursor_type=BOX, blink=False, bright_bold=True,
-        tab="D8A94A",
-        # Deliberately DESATURATED away from the gold. An imperial palette is
-        # one metal and a lot of restraint -- verdigris, dusty blue, muted plum.
-        # Saturate any of these and the gold stops reading as the only precious
-        # thing on screen, which is the whole idea.
-        ansi=["12172B","C86A5C","7A9464","D8A94A","5B7FC4","9B6FB0","5FA0B8","C9BFA6",
-              "5E6484","DC8274","96B37E","F0C86A","7C9EDC","B78ACB","7FBFD4","F5EBD2"],
+        bg="D9CAB4", fg="1B2C4E", bold="0F1A2E",
+        cursor="1E3A6E", cursor_text="D9CAB4",
+        selection="C0AE94", selected_text="0F1A2E", link="254475",
+        cursor_type=BOX, blink=False, bright_bold=False,
+        tab="1E3A6E",
+        # Sampled off production stills, not invented. Every Foundation frame
+        # measured sits in ONE warm hue family -- throne room 27-33 deg, palace
+        # exterior 20-30, the Radiant itself 27-28 -- and the only saturated
+        # cold note anywhere is what Cleon is WEARING (#00183B, hue 216, sat
+        # 100%). So blue is the figure and amber is the ground: imperial livery
+        # against the stone it rules from, rather than gold text in a dark room.
+        #
+        # The bright half runs DARKER than the normal half, which is correct on
+        # a pale ground: bright means more emphatic, and emphasis on paper is
+        # more ink, not more light. Each was walked down in HLS lightness with
+        # hue and saturation held, so crimson stays crimson instead of going to
+        # mud. Accent hues are the Mural of Souls pigments Orlio names aloud in
+        # S1E01 -- plum, periwinkle, saffron, crimson.
+        ansi=["3A3226","8E3B32","4B5944","6E4F18","1E3A6E","6B4A6B","365B5B","5E5344",
+              "6E6354","6E332B","3D4737","573F16","254475","543D54","2F4949","0F1A2E"],
         blurb=(
-            "Cleon's Trantor -- imperial gold on lacquered blue-black. The ramp is "
-            "muted on purpose so the gold is the only metal in the room. Slot 8 sits "
-            "at 3.3:1: dim enough to recede, bright enough that ls still has "
-            "permission bits."),
+            "Cleon's livery on Trantor's stone. Every Foundation frame measures "
+            "one warm hue; the dynasty's blue is the only saturated cold thing in "
+            "it, so the theme puts blue ink on lit sandstone rather than gold in a "
+            "dark room. Bright slots run darker than normal ones, as emphasis on a "
+            "pale ground must."),
     ),
 
     machine("Prime Radiant", "Radiant Prime Mono", 12, ns="Sci-Fi",
         iterm_font="RadiantPrimeMono-Regular",
-        bg="0A0918", fg="9AA8F2", bold="E4E9FF",
-        cursor="8E9CF5", cursor_text="0A0918",
-        selection="2A2652", selected_text="E9EDFF", link="C79BF5",
+        bg="0C0805", fg="D0A070", bold="F0DCC4",
+        cursor="E8B84B", cursor_text="0C0805",
+        selection="3A2A18", selected_text="F0DCC4", link="8EB2E8",
         cursor_type=VBAR, blink=True, bright_bold=True,
         transparency=0.06, blur=True, blur_radius=1.2,
-        tab="8E9CF5",
-        # The opposite discipline to Empire: every slot emissive, because the
-        # conceit is projected mathematics rather than pigment. Gold survives as
-        # a single accent -- the Empire showing through the instrument built to
-        # outlast it.
-        ansi=["121028","E0607A","5FD1A8","E8B84B","6E7FE8","B07FE8","6FC8E8","C6CCEE",
-              "565189","F0839A","82E4C2","F5D07A","8E9CF5","C79BF5","92DCF5","E9EDFF"],
+        tab="E8B84B",
+        # Sampled off the still of Seldon holding it: 77% of that frame sits
+        # below 10% luminance and the device is a warm amber ember, hue 27-28.
+        # An earlier cut of this made it violet-blue, which was invention -- the
+        # word "periwinkle" came from the mural dialogue and quietly became a
+        # palette. The pair is separated by LUMINANCE and SATURATION, not hue:
+        # Empire is a lit surface, this is a light source.
+        ansi=["1A1108","D46A4A","8FB86A","E8B84B","6E92C8","B07EA8","6EBCB0","C4A98C",
+              "6B5238","F08A62","AEDC86","F5D07A","8EB2E8","D09ECC","92DCD0","F0DCC4"],
         blurb=(
-            "Seldon's device: psychohistory as projected light. Fully saturated "
-            "where Empire is muted, because nothing here is pigment -- it is all "
-            "emission. No CRT shader: this is holography, not a tube."),
+            "Seldon's device, sampled off the frame: an amber ember in a room that "
+            "is 77% black. Empire is a lit surface and this is a light source -- the "
+            "pair inverts polarity, not hue. No CRT shader: holography, not a tube."),
     ),
 ]
 
