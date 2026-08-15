@@ -127,6 +127,19 @@ def config_lines(p: dict, tube: bool) -> list:
     L = [
         f'font-family = "{family}"',
         f"font-size = {size}",
+    ]
+    # A profile that elects a non-Regular member as its BASE face pins the
+    # weight for iTerm2 through the PostScript name in "Normal Font". Ghostty
+    # only ever sees the family, so name the style here or it falls back to
+    # Regular and the same profile renders lighter in Ghostty than in iTerm2.
+    style = p.get("Ghostty Font Style")
+    if style:
+        L.append(f"font-style = {style}")
+        # Base face is already the heaviest member: point bold at that same
+        # face by name so Ghostty resolves it rather than synthesizing one.
+        if not p.get("Use Bold Font", True):
+            L.append(f"font-style-bold = {style}")
+    L += [
         f"cursor-style = {CURSOR.get(p['Cursor Type'], 'block')}",
         f"cursor-style-blink = {'true' if p['Blinking Cursor'] else 'false'}",
     ]
@@ -235,6 +248,9 @@ def profile_json(p: dict, tag: str) -> dict:
         "fg": to_hex(p["Foreground Color"]),
         "ansi": [to_hex(p[f"Ansi {i} Color"]) for i in range(16)],
         "font": family,
+        # CSS weight for the studio's canvas preview -- profiles that elect a
+        # non-Regular base face would otherwise preview in Regular.
+        "weight": 700 if (p.get("Ghostty Font Style") or "").lower() == "bold" else 400,
         "size": int(size),
         "sample": "\n".join(sample),
         "themeText": "\n".join(color_lines(p)),

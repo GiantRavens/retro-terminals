@@ -156,6 +156,8 @@ def machine(
     blurb="",           # human note, dropped into a comment sibling file
     ns="Retro",         # namespace: name prefix ("Retro · X") + tag group
     iterm_font=None,    # iTerm2-only font name override; see below
+    font_style=None,    # Ghostty-only style member override; see below
+    use_bold_font=True, # False = bold text is a COLOR change, not a heavier face
 ):
     bold = bold or fg
     cursor = cursor or fg
@@ -168,6 +170,13 @@ def machine(
     # the FAMILY name or it cannot find the bold and italic members. So `font`
     # stays the true family (and keys the metric tables below), while
     # `iterm_font` overrides just the string iTerm2 reads.
+    #
+    # A profile may also elect a NON-Regular member as its base face (see
+    # Convair Whiteprint). iTerm2 needs nothing extra -- the PostScript name in
+    # `iterm_font` already pins the weight. Ghostty resolves by family and would
+    # silently drop back to Regular, so it needs the style named separately in
+    # `font_style`, or the same profile renders at two different weights
+    # depending on which terminal opened it.
     fontstr = f"{iterm_font or font} {size}"
 
     p = {
@@ -192,7 +201,12 @@ def machine(
         # Symbol glyphs are vector outlines — keep them AA'd even when the
         # machine font renders as crisp pixels.
         "Non-ASCII Anti Aliased": True if symbols else aa,
-        "Use Bold Font": True,
+        # When the base face is ALREADY the family's heaviest member there is no
+        # bolder one to reach for, and leaving this on invites iTerm2's synthetic
+        # bold (a second draw, offset a pixel) -- which on a light ground reads
+        # as a smear, not emphasis. Those profiles carry the distinction in
+        # Bold Color instead.
+        "Use Bold Font": use_bold_font,
         "Use Italic Font": True,
         "Horizontal Spacing": hspacing,
         "Vertical Spacing": round(FONT_LEADING.get(font, 1.0) * vspacing, 3),
@@ -231,6 +245,8 @@ def machine(
         p[f"Ansi {i} Color"] = color(hx)
     if ghostty_min_contrast is not None:
         p["_ghostty_min_contrast"] = ghostty_min_contrast
+    if font_style:
+        p["Ghostty Font Style"] = font_style
     if tab:
         p["Use Tab Color"] = True
         p["Tab Color"] = color(tab)
@@ -508,7 +524,7 @@ PROFILES = [
     # 16. Convair blueprint (cyanotype: white lines on Prussian blue) ---------
     machine(
         "Convair Blueprint", "Convair Mono", 13, iterm_font="ConvairMono-Regular",
-        bg="13224A", fg="C0D1E9", bold="EEF3FA",
+        bg="13224A", fg="E8EEF7", bold="FFFFFF",
         cursor="F2F6FB", cursor_text="13224A",
         selection="2C3E73", selected_text="F2F6FB", link="8FB4E8",
         cursor_type=UNDERLINE, blink=False, aa=True, bright_bold=True,
@@ -528,8 +544,16 @@ PROFILES = [
 
     # 17. Convair whiteprint (diazo: violet lines on buff paper) --------------
     machine(
-        "Convair Whiteprint", "Convair Mono", 13, iterm_font="ConvairMono-Regular",
-        bg="EFE7D6", fg="372D56", bold="1F1838",
+        # WEIGHT: Blueprint and Whiteprint are the same font at the same size,
+        # but Blueprint puts light ink on a dark ground and Whiteprint does the
+        # reverse -- and dark-on-light always reads thinner (irradiation: the
+        # bright field bleeds into the stroke). Convair Mono has no Medium, so
+        # the only real step is Bold, which is where the base face sits here.
+        # It is also the truer artifact: a diazo line is dye soaked into paper,
+        # heavier and softer than a cyanotype's crisp resist edge.
+        "Convair Whiteprint", "Convair Mono", 13, iterm_font="ConvairMono-Bold",
+        font_style="Bold", use_bold_font=False,
+        bg="EFE7D6", fg="2A2148", bold="120D26",
         cursor="5A4A8C", cursor_text="EFE7D6",
         selection="D8CCB4", selected_text="2A2244", link="6A3F86",
         cursor_type=UNDERLINE, blink=False, aa=True, bright_bold=False,
@@ -906,6 +930,82 @@ def _era_by_name():
     return dict(re.findall(r'\{name:"(.*?)",era:"(.*?)"', html, re.S))
 
 
+# Gallery cursor shapes, keyed to the .screen modifier classes in index.html.
+GALLERY_CURSOR = {UNDERLINE: "under", VBAR: "bar", BOX: "block"}
+
+
+def sync_gallery(repo_dir, apply=True):
+    """Rewrite the gallery's DERIVED fields in index.html from the spec above.
+
+    index.html has always had two owners: the generator owns what a machine
+    LOOKS like (colors, cursor shape, base weight), the gallery owns what it
+    SAYS (era, meta labels, sample lines) -- which is why _era_by_name reads
+    back out of it. Splitting a file between two owners is fine. Leaving both
+    halves hand-typed is not: Convair Blueprint sat two shades brighter here
+    than in the profile it advertises and nothing caught it, because a stale
+    swatch is still a perfectly valid swatch. Nothing downstream can detect
+    "correct but no longer true."
+
+    So the color half is machine-written now, and the drift it used to hide is
+    a test failure instead (tests/test_gallery_sync.py). Returns the list of
+    (machine, field) pairs that were out of date; with apply=False it reports
+    without writing, which is the whole of what the test needs.
+    """
+    import re
+    path = os.path.join(repo_dir, "index.html")
+    if not os.path.exists(path):
+        return []
+    html = open(path, encoding="utf-8").read()
+    spec = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORP) for p in g}
+    drift = []
+
+    def hexof(p, key):
+        c = p[key]
+        return "#%02X%02X%02X" % tuple(
+            round(c[f"{ch} Component"] * 255) for ch in ("Red", "Green", "Blue")
+        )
+
+    def fix(m):
+        name, block = m.group(1), m.group(0)
+        p = spec.get(name)
+        if not p:
+            drift.append((name, "not in generator"))
+            return block
+        def put(pattern, value, field):
+            nonlocal block
+            new = re.sub(pattern, value.replace("\\", "\\\\"), block, count=1)
+            if new != block:
+                drift.append((name, field))
+            block = new
+        for field, key in (("bg", "Background Color"), ("fg", "Foreground Color"),
+                           ("bold", "Bold Color"), ("cur", "Cursor Color")):
+            put(rf'(?<=\b{field}:")#[0-9A-Fa-f]{{6}}', hexof(p, key), field)
+        put(r'(?<=\bcurType:")[a-z]+',
+            GALLERY_CURSOR.get(p["Cursor Type"], "block"), "curType")
+        put(r'(?<=\bansi:\[)[^\]]+',
+            ",".join(f'"{hexof(p, f"Ansi {i} Color")}"' for i in range(16)), "ansi")
+        # `weight` is present only on machines whose BASE face is non-Regular,
+        # so it has to be inserted and removed, not just substituted.
+        want = 700 if (p.get("Ghostty Font Style") or "").lower() == "bold" else None
+        block2 = re.sub(r',weight:\d+', "", block)
+        if want:
+            block2 = re.sub(r'(?<=,)(?=bg:")', f"weight:{want},", block2, count=1)
+        if block2 != block:
+            drift.append((name, "weight"))
+            block = block2
+        return block
+
+    out = re.sub(r'\{name:"([^"]+)".*?(?=\n \{name:"|\n\];)', fix, html, flags=re.S)
+    if apply and out != html:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(out)
+    if apply:
+        n = len({d[0] for d in drift})
+        print(f"Synced gallery colors -> index.html"
+              f"{f'  ({len(drift)} fields on {n} machines were stale)' if drift else '  (already in sync)'}")
+    return drift
+
+
 def _sq(s):
     """Single-quote for zsh, escaping embedded quotes."""
     return "'" + s.replace("'", "'\\''") + "'"
@@ -980,6 +1080,7 @@ def main():
     # Shell palettes live next to retro-prompts.zsh (the repo dir), which
     # sources them for `retro random`.
     write_shell_palettes(os.path.dirname(os.path.abspath(__file__)))
+    sync_gallery(os.path.dirname(os.path.abspath(__file__)))
     total = len(PROFILES) + len(FICTION) + len(AESTHETIC) + len(CORP)
     print(f"\nTotal: {total} profiles in 4 groups "
           f"(retro / sci-fi / aesthetic / corp).")

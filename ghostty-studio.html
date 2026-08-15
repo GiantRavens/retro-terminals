@@ -1742,7 +1742,9 @@ function drawScreen(){
   tctx.fillStyle = cur.bg; tctx.fillRect(0,0,TX.width,TX.height);
   tctx.fillStyle = cur.fg; tctx.textBaseline="top";
   const size = cur.size*1.35;
-  tctx.font = `${size}px "${cur.font}", ui-monospace, monospace`;
+  // `weight` carries a profile that elects a non-Regular base face (Whiteprint
+  // runs Convair Mono Bold); without it the preview lies about the weight.
+  tctx.font = `${cur.weight||400} ${size}px "${cur.font}", ui-monospace, monospace`;
   const pad = (P.pad!=null?P.pad:26);
   const lh=size*1.35, padx=pad, pady=pad;
   document.getElementById("text").value.split("\n").forEach((ln,i)=>tctx.fillText(ln,padx,pady+i*lh));

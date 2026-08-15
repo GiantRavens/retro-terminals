@@ -42,6 +42,9 @@
   .screen .ln{display:block}
   .screen .cur{display:inline-block;width:.6em;height:1.05em;transform:translateY(.18em);animation:blink 1.06s steps(1) infinite}
   .screen.under .cur{height:.16em;transform:translateY(.05em)}
+  /* iTerm2 draws three cursor shapes; the gallery used to draw two, so the one
+     vbar machine (Neuromancer) advertised a block it does not have. */
+  .screen.bar .cur{width:.14em}
   .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(rgba(0,0,0,0) 0 2px,rgba(0,0,0,.22) 2px 3px)}
   .ansi{display:grid;grid-template-columns:repeat(16,1fr);height:11px}
   .ansi i{display:block}
@@ -170,7 +173,7 @@ const M=[
  {name:"Convair Blueprint",era:"1943 · Consolidated Vultee",font:"'Convair Mono',monospace",bg:"#13224A",fg:"#E8EEF7",bold:"#FFFFFF",cur:"#F2F6FB",curType:"under",
   ansi:["#0B1533","#CD7081","#5E9C8A","#C9A96B","#6383BF","#9082CB","#5FA8C7","#C6D4E6","#6B84B7","#E07A8C","#86C4AE","#E6C88A","#7CA0DC","#AFA0E8","#92CFE4","#F2F6FB"],
   meta:["Convair Mono","underline","cyanotype blue"],s:["CONVAIR — ENGINEERING DEPT","$ ls wing-spar.dwg","SHEET D  22 x 34   REV B","$ "]},
- {name:"Convair Whiteprint",era:"1955 · diazo print room",font:"'Convair Mono',monospace",bg:"#EFE7D6",fg:"#463A6E",bold:"#2E2450",cur:"#5A4A8C",curType:"under",
+ {name:"Convair Whiteprint",era:"1955 · diazo print room",font:"'Convair Mono',monospace",weight:700,bg:"#EFE7D6",fg:"#2A2148",bold:"#120D26",cur:"#5A4A8C",curType:"under",
   ansi:["#2E2748","#9B3A44","#4A6B4A","#7E6126","#3E4A8C","#6A3F86","#3A6A78","#5C5470","#6B647F","#B85560","#507051","#7F6331","#5A66A8","#8A5AA6","#4E8494","#2A2440"],
   meta:["Convair Mono","underline","diazo violet on buff"],s:["CONVAIR — PRINT ROOM","$ diazo --develop ammonia","ORIGINAL RETAINED IN VAULT","$ "]},
 ];
@@ -182,7 +185,7 @@ const MF=[
  {name:"TRON",era:"1982",font:"'Glass TTY VT220',monospace",bg:"#010A12",fg:"#7EE8FF",bold:"#C8F6FF",cur:"#FF9A3C",curType:"block",fx:true,
   ansi:["#001018","#FF6A3C","#4CE0C0","#FFB84C","#2A9AD0","#8CC8FF","#7EE8FF","#BCE8FF","#14506A","#FF9A3C","#8CFFE8","#FFD08C","#5AB8FF","#B0D8FF","#C8F6FF","#FFFFFF"],
   meta:["Glass TTY VT220","block","ENCOM grid"],s:["ENCOM MAINFRAME  OS-12","","TRON: I FIGHT FOR THE USERS","","END OF LINE.","","flynn> "]},
- {name:"Neuromancer",era:"1984 · Sprawl",font:"'Menlo',monospace",bg:"#05060A",fg:"#00F0C0",bold:"#7CFFE0",cur:"#FF2E97",curType:"block",fx:true,
+ {name:"Neuromancer",era:"1984 · Sprawl",font:"'Menlo',monospace",bg:"#05060A",fg:"#00F0C0",bold:"#7CFFE0",cur:"#FF2E97",curType:"bar",fx:true,
   ansi:["#0A0A12","#FF2E97","#00F0C0","#F0E14C","#3A5CFF","#C86CFF","#00D0FF","#A8C0D0","#303048","#FF6CB0","#6CFFD8","#FFF07C","#6C90FF","#E0A0FF","#8CF0FF","#E8F4FF"],
   meta:["Menlo","bar","Ono-Sendai deck"],s:["ONO-SENDAI CYBERSPACE 7","","The sky above the port was the","color of television, tuned to","a dead channel.","","case@sprawl:~$ "]},
  {name:"HAL 9000",era:"2001",font:"'Glass TTY VT220',monospace",bg:"#0A0000",fg:"#FF2A2A",bold:"#FF6B6B",cur:"#FF2A2A",curType:"block",fx:true,
@@ -270,7 +273,7 @@ function buildCard(m){
       <span class="name">${escapeHtml(m.name)}</span>
       <span class="era">${escapeHtml(m.era)}</span>
     </div>
-    <div class="screen ${m.curType==="under"?"under":""}" style="background:${m.bg};font-family:${m.font};${m.fx?`text-shadow:0 0 4px ${m.fg}88`:""}">
+    <div class="screen ${m.curType==="block"?"":m.curType}" style="background:${m.bg};font-family:${m.font};font-weight:${m.weight||400};${m.fx?`text-shadow:0 0 4px ${m.fg}88`:""}">
       ${lines}${m.fx?'<div class="scan"></div>':""}
     </div>
     <div class="ansi">${swatches}</div>
