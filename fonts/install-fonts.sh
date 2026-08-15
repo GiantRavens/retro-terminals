@@ -50,6 +50,29 @@ if ! have "Bedstead"; then
     && valid "$TMP/bedstead.otf" && cp "$TMP/bedstead.otf" "$FONTDIR/Bedstead.otf" && echo "   ok" || echo "   FAILED"
 else echo "   present"; fi
 
+echo "==> Convair Mono — the drafting face (GiantRavens/convair-mono)"
+# Convair Mono is built rather than fetched from a foundry: it is a monospaced
+# derivative of Routed Gothic, cut for this project and kept in its own repo.
+# Prefer a local checkout if one is sitting next to this one, so a working tree
+# beats a release download; fall back to the published tarball.
+if ! have "Convair Mono"; then
+  LOCAL=""
+  for cand in "../../convair-mono/fonts" "$HOME/Desktop/notebook/code/convair-mono/fonts"; do
+    [ -d "$cand" ] && LOCAL="$cand" && break
+  done
+  if [ -n "$LOCAL" ]; then
+    cp "$LOCAL"/ConvairMono-*.ttf "$FONTDIR/" 2>/dev/null \
+      && echo "   ok (from local checkout: $LOCAL)" || echo "   FAILED"
+  else
+    curl -fsSL -A "$UA" \
+      "https://github.com/GiantRavens/convair-mono/releases/latest/download/ConvairMono.zip" \
+      -o "$TMP/convair.zip" \
+      && valid "$TMP/convair.zip" && unzip -oq "$TMP/convair.zip" -d "$TMP/convair" \
+      && find "$TMP/convair" -iname "ConvairMono-*.ttf" -exec cp {} "$FONTDIR/" \; \
+      && echo "   ok" || echo "   FAILED (not published yet? clone GiantRavens/convair-mono and run make)"
+  fi
+else echo "   present"; fi
+
 echo
 echo "Done. (Courier / Menlo are macOS system fonts. ZX Spectrum & Atari"
 echo "profiles use Departure Mono as a fallback — no free originals hosted.)"

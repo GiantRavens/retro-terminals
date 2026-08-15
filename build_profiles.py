@@ -82,6 +82,9 @@ FONT_LEADING = {
     "Glass TTY VT220": 1.12,
     "Terminus (TTF)": 1.08,
     "IBM 3270": 1.08,
+    # Convair Mono's cell height EQUALS its em (1120/1120) -- tighter than any
+    # other face here, so it needs the leading the design deliberately omits.
+    "Convair Mono": 1.20,
 }
 
 
@@ -97,6 +100,11 @@ FONT_LEADING = {
 # Purists can instead keep icons ASCII inside nvim — see
 # integration/nvim/lua/retro/icons.lua.
 SYMBOLS_FONT = "SymbolsNFM"
+
+# Scrollback cap, applied to every generated profile. See the "--- terminal ---"
+# block in machine() for why this is set explicitly rather than inherited from
+# the Default profile.
+SCROLLBACK_LINES = 50000
 
 
 # Machine-font advance width as a fraction of point size ('M' advance / size,
@@ -115,6 +123,7 @@ FONT_CELL_EM = {
     "C64 Pro Mono": 1.0,
     "Print Char 21": 0.875,
     "Bedstead": 0.60,
+    "Convair Mono": 0.548,   # 614/1120 advance
 }
 
 
@@ -137,6 +146,7 @@ def machine(
     symbols=True,       # Nerd Font fallback for non-ASCII (icons in nvim etc.)
     bright_bold=True,
     min_contrast=0.0,
+    ghostty_min_contrast=None,  # WCAG ratio (1..21); Ghostty-specific
     transparency=0.0,
     blur=False,
     blur_radius=2.0,
@@ -145,6 +155,7 @@ def machine(
     tab=None,           # optional tab-color accent hex
     blurb="",           # human note, dropped into a comment sibling file
     ns="Retro",         # namespace: name prefix ("Retro · X") + tag group
+    iterm_font=None,    # iTerm2-only font name override; see below
 ):
     bold = bold or fg
     cursor = cursor or fg
@@ -152,15 +163,26 @@ def machine(
     selection = selection or ansi[8]
     selected_text = selected_text or fg
     link = link or ansi[12]
-    fontstr = f"{font} {size}"
+    # iTerm2 resolves some faces only by their POSTSCRIPT name -- its own font
+    # picker writes that form back into the profile. Ghostty, meanwhile, needs
+    # the FAMILY name or it cannot find the bold and italic members. So `font`
+    # stays the true family (and keys the metric tables below), while
+    # `iterm_font` overrides just the string iTerm2 reads.
+    fontstr = f"{iterm_font or font} {size}"
 
     p = {
-        "Name": f"{ns} · {name}",
+        # Bare machine name. The pack used to prefix this ("Retro · Paper
+        # Teletype"), but the Tag below is what iTerm2 actually groups by, so
+        # the prefix only made every profile list read like a filing system.
+        "Name": name,
+        "Pack": ns,
         "Guid": guid(name),
         "Tags": [ns.lower()],
         "Dynamic Profile Parent Name": "Default",
         # --- fonts ---
         "Normal Font": fontstr,
+        # Ignored by iTerm2 (unknown keys pass through); build_ghostty prefers it.
+        "Ghostty Font Family": font,
         "Non Ascii Font": (
             f"{SYMBOLS_FONT} {max(6, round(size * FONT_CELL_EM.get(font, 0.6)))}"
             if symbols else fontstr
@@ -184,6 +206,16 @@ def machine(
         "Transparency": transparency,
         "Blur": blur,
         "Blur Radius": blur_radius,
+        # --- terminal ---
+        # Set EXPLICITLY, not inherited. These profiles carry
+        # "Dynamic Profile Parent Name": "Default", so anything left unset
+        # follows whatever Default happens to be — and an unlimited-scrollback
+        # Default silently propagates to every profile here. iTerm2 reflows the
+        # scrollback on the same thread that handles keystrokes, so the cost is
+        # O(buffer): invisible on a fresh session, painful after a long one.
+        # 50k lines is generous for a terminal and bounded for the renderer.
+        "Unlimited Scrollback": False,
+        "Scrollback Lines": SCROLLBACK_LINES,
         # --- core colors ---
         "Background Color": color(bg),
         "Foreground Color": color(fg),
@@ -197,6 +229,8 @@ def machine(
     }
     for i, hx in enumerate(ansi):
         p[f"Ansi {i} Color"] = color(hx)
+    if ghostty_min_contrast is not None:
+        p["_ghostty_min_contrast"] = ghostty_min_contrast
     if tab:
         p["Use Tab Color"] = True
         p["Tab Color"] = color(tab)
@@ -470,6 +504,48 @@ PROFILES = [
         ],
         blurb="The unmistakable acme pale-yellow paper (#FFFFEA). Bell Labs, Rob Pike.",
     ),
+
+    # 16. Convair blueprint (cyanotype: white lines on Prussian blue) ---------
+    machine(
+        "Convair Blueprint", "Convair Mono", 13, iterm_font="ConvairMono-Regular",
+        bg="13224A", fg="C0D1E9", bold="EEF3FA",
+        cursor="F2F6FB", cursor_text="13224A",
+        selection="2C3E73", selected_text="F2F6FB", link="8FB4E8",
+        cursor_type=UNDERLINE, blink=False, aa=True, bright_bold=True,
+        tab="4A6FB5",
+        ansi=[
+            "0B1533", "CD7081", "5E9C8A", "C9A96B",
+            "6383BF", "9082CB", "5FA8C7", "C6D4E6",
+            "6B84B7", "E07A8C", "86C4AE", "E6C88A",
+            "7CA0DC", "AFA0E8", "92CFE4", "F2F6FB",
+        ],
+        blurb=(
+            "Cyanotype. The lines are the PAPER showing through -- a blueprint is "
+            "a negative, which is why the ground is ink and the drawing is white. "
+            "Red is the drafter's redline markup."
+        ),
+    ),
+
+    # 17. Convair whiteprint (diazo: violet lines on buff paper) --------------
+    machine(
+        "Convair Whiteprint", "Convair Mono", 13, iterm_font="ConvairMono-Regular",
+        bg="EFE7D6", fg="372D56", bold="1F1838",
+        cursor="5A4A8C", cursor_text="EFE7D6",
+        selection="D8CCB4", selected_text="2A2244", link="6A3F86",
+        cursor_type=UNDERLINE, blink=False, aa=True, bright_bold=False,
+        tab="6A3F86",
+        ansi=[
+            "2E2748", "9B3A44", "4A6B4A", "7E6126",
+            "3E4A8C", "6A3F86", "3A6A78", "5C5470",
+            "6B647F", "B85560", "507051", "7F6331",
+            "5A66A8", "8A5AA6", "4E8494", "2A2440",
+        ],
+        blurb=(
+            "Diazo whiteprint -- the ammonia process that replaced the blueprint "
+            "in the 1940s and ran until CAD. Positive image: violet lines on buff, "
+            "and the violet is real, from the diazonium dye."
+        ),
+    ),
 ]
 
 
@@ -481,7 +557,7 @@ PROFILES = [
 # echoes, `clear` wipes, the banner prints, a second prompt draws: four visible
 # repaints (the "spotty startup"). Now each profile runs tools/retro-boot as
 # its session Command instead: the presentation (typed chatter + ASCII art +
-# key-click sounds + ENTER gate) happens BEFORE any shell exists, then it
+# typed chatter + ENTER gate) happens BEFORE any shell exists, then it
 # exec's your login shell with $RETRO_MACHINE set so retro-prompts.zsh wears
 # the period prompt. Chatter + art are per-machine data in banners/<key>.*
 # (the old BANNERS dicts here migrated to banners/<key>.boot).
@@ -502,7 +578,7 @@ TUBES = {
 }
 
 for _p in PROFILES:
-    if _p["Name"].replace("Retro · ", "") in TUBES:
+    if _p["Name"] in TUBES:
         _p["Background Image Location"] = BEZEL
         _p["Background Image Mode"] = 0        # 0 = stretch to fill
         _p["Blend"] = 0.45                     # overlay strength (0..1)
@@ -631,6 +707,10 @@ AESTHETIC = [
         bg="F2EFDF", fg="24614A", bold="15402F", cursor="D9A441", cursor_text="F2EFDF",
         selection="CFE3C8", selected_text="15402F", link="2A7A8A",
         cursor_type=BOX, blink=False, bright_bold=False,
+        # Apps such as Claude Code sometimes emit literal white truecolor,
+        # bypassing ANSI 7/15. Both backends need a contrast floor so those
+        # colors are corrected against this unusually light background.
+        min_contrast=0.45, ghostty_min_contrast=3.0,
         ansi=["1E2A20","B0503A","3C8A50","C08A2A","2A7A8A","8A5A8A","2E9A88","5A6A58",
               "7A8A78","C86A50","4CA860","D9A441","3A9AAE","A87AA8","4CBAA0","24614A"],
         blurb="Warm cream, leaf-green and gold. The future is a garden."),
@@ -740,16 +820,16 @@ CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "MU-TH-UR 6000 CRT", "Seegson APOLL
 # Attach CRT bezels to the notional packs (boot banners: see SHELL_KEY below)
 # ---------------------------------------------------------------------------
 
-def _attach(profiles, prefix, tubes):
+def _attach(profiles, tubes):
     for p in profiles:
-        if p["Name"].replace(prefix, "") in tubes:
+        if p["Name"] in tubes:
             p["Background Image Location"] = BEZEL
             p["Background Image Mode"] = 0
             p["Blend"] = 0.45
 
 
-_attach(FICTION, "Sci-Fi · ", FTUBES)
-_attach(CORP,    "Corp · ",   CTUBES)
+_attach(FICTION, FTUBES)
+_attach(CORP,    CTUBES)
 
 
 # ---------------------------------------------------------------------------
@@ -787,6 +867,7 @@ SHELL_KEY = {
     "MU-TH-UR 6000 CRT": "muthur", "Seegson APOLLO": "apollo",
     "Tyrell Corporation": "tyrell", "Wallace Corporation": "wallace",
     "Voight-Kampff": "vk",
+    "Convair Blueprint": "blueprint", "Convair Whiteprint": "whiteprint",
 }
 
 
@@ -803,7 +884,7 @@ BOOT_CMD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "re
 
 def attach_boot_command(profiles):
     for p in profiles:
-        key = SHELL_KEY.get(p["Name"].split(" · ", 1)[-1])
+        key = SHELL_KEY.get(p["Name"])
         if key:
             p["Custom Command"] = "Yes"
             p["Command"] = f"{BOOT_CMD} --login {key}"
@@ -845,7 +926,7 @@ def write_shell_palettes(dest_dir):
     keys = []
     unmapped = []
     for p in PROFILES + FICTION + AESTHETIC + CORP:
-        name = p["Name"].split(" · ", 1)[1]
+        name = p["Name"]
         key = SHELL_KEY.get(name)
         if not key:
             unmapped.append(name)

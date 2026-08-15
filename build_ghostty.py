@@ -28,8 +28,8 @@ Where iTerm2 and Ghostty diverge (documented so the mapping isn't magic):
   * Vertical/Horizontal Spacing (a multiplier) -> adjust-cell-height/width (a %).
   * Bitmap/pixel fonts with AA off: Ghostty has no AA toggle; they may render
     soft. The palette still carries the identity.
-  * Link Color, Minimum Contrast, Use Bright Bold, boot banners: no clean
-    Ghostty equivalent -> dropped. (Banners belong in your shell rc anyway.)
+  * Link Color and Use Bright Bold: no clean Ghostty equivalent -> dropped.
+    Profiles may carry a Ghostty WCAG minimum-contrast ratio explicitly.
 
 Run:  python3 build_ghostty.py             # write into ~/.config/ghostty
       python3 build_ghostty.py --stdout    # print one example config, write nothing
@@ -114,11 +114,16 @@ def color_lines(p: dict) -> list:
     # bold-color", delete these lines (they only warn, they don't stop launch).
     if to_hex(p["Bold Color"]) != to_hex(p["Foreground Color"]):
         L.append(f"bold-color = {to_hex(p['Bold Color'])}")
+    if p.get("_ghostty_min_contrast") is not None:
+        L.append(f"minimum-contrast = {p['_ghostty_min_contrast']:g}")
     return L
 
 
 def config_lines(p: dict, tube: bool) -> list:
+    # "Normal Font" may carry an iTerm2-specific PostScript name; the family is
+    # what Ghostty needs to resolve bold/italic members.
     family, size = parse_font(p["Normal Font"])
+    family = p.get("Ghostty Font Family") or family
     L = [
         f'font-family = "{family}"',
         f"font-size = {size}",
@@ -152,8 +157,9 @@ def config_lines(p: dict, tube: bool) -> list:
 
 
 def base_name(p: dict) -> str:
-    """'Sci-Fi · The Matrix' -> 'The Matrix'."""
-    return p["Name"].split(" · ", 1)[1]
+    """The bare machine name. Kept as a function because the pack used to be
+    prefixed onto Name and every caller went through here to strip it."""
+    return p["Name"]
 
 
 def is_tube(p: dict) -> bool:
@@ -207,7 +213,7 @@ def boot_chatter(base: str):
         if ln.startswith("@print "):
             lines.append(ln[len("@print "):])
         elif ln.startswith("@"):
-            continue                     # timing/sound directives
+            continue                     # presentation directives
         else:
             lines.append(ln)
     return lines or None
@@ -216,6 +222,7 @@ def boot_chatter(base: str):
 def profile_json(p: dict, tag: str) -> dict:
     base = base_name(p)
     family, size = parse_font(p["Normal Font"])
+    family = p.get("Ghostty Font Family") or family
     sample = boot_chatter(base) or [base, "", "READY."]
     return {
         "name": p["Name"],
