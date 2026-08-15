@@ -85,6 +85,11 @@ FONT_LEADING = {
     # Convair Mono's cell height EQUALS its em (1120/1120) -- tighter than any
     # other face here, so it needs the leading the design deliberately omits.
     "Convair Mono": 1.20,
+    # Radiant Prime Mono has the same 1:1 cell-to-em problem (1080/1080) AND is
+    # unicase, which compounds it: with no descenders and no x-height, every row
+    # is a solid band of cap-height glyphs with nothing breaking the vertical
+    # rhythm between them. It needs more air than Convair, not the same.
+    "Radiant Prime Mono": 1.28,
 }
 
 
@@ -124,6 +129,9 @@ FONT_CELL_EM = {
     "Print Char 21": 0.875,
     "Bedstead": 0.60,
     "Convair Mono": 0.548,   # 614/1120 advance
+    "Radiant Prime Mono": 0.704,   # 760/1080 advance -- the widest cell here,
+                                   # so Nerd Font fallback glyphs need scaling
+                                   # up to match or icons sit small in the cell
 }
 
 
@@ -708,6 +716,52 @@ FICTION = [
         ansi=["000000","CC6666","66CC99","FFCC00","6688CC","CC99CC","99CCCC","FF9900",
               "55442A","FF8866","99DDAA","FFCC66","99AAFF","DDAAEE","AADDDD","FFCC99"],
         blurb="Star Trek LCARS: the orange / gold / mauve / blue panel palette on black."),
+
+    # Foundation, a PAIR -- the show's central opposition, the way Blueprint and
+    # Whiteprint are one drawing seen from both sides. Empire is centralised,
+    # opulent and doomed; the Prime Radiant is marginal, mathematical and
+    # ascendant. Same face, same era, inverted values. Both set in Radiant Prime
+    # Mono, which is the title-sequence lettering made fixed-width -- and which
+    # is unicase, so these two machines are capitals-only by construction.
+    machine("Empire", "Radiant Prime Mono", 12, ns="Sci-Fi",
+        iterm_font="RadiantPrimeMono-Regular",
+        bg="0B0E1C", fg="E0BC6A", bold="FFE8B0",
+        cursor="F0C86A", cursor_text="0B0E1C",
+        selection="2A2A3E", selected_text="FFE8B0", link="7C9EDC",
+        cursor_type=BOX, blink=False, bright_bold=True,
+        tab="D8A94A",
+        # Deliberately DESATURATED away from the gold. An imperial palette is
+        # one metal and a lot of restraint -- verdigris, dusty blue, muted plum.
+        # Saturate any of these and the gold stops reading as the only precious
+        # thing on screen, which is the whole idea.
+        ansi=["12172B","C86A5C","7A9464","D8A94A","5B7FC4","9B6FB0","5FA0B8","C9BFA6",
+              "5E6484","DC8274","96B37E","F0C86A","7C9EDC","B78ACB","7FBFD4","F5EBD2"],
+        blurb=(
+            "Cleon's Trantor -- imperial gold on lacquered blue-black. The ramp is "
+            "muted on purpose so the gold is the only metal in the room. Slot 8 sits "
+            "at 3.3:1: dim enough to recede, bright enough that ls still has "
+            "permission bits."),
+    ),
+
+    machine("Prime Radiant", "Radiant Prime Mono", 12, ns="Sci-Fi",
+        iterm_font="RadiantPrimeMono-Regular",
+        bg="0A0918", fg="9AA8F2", bold="E4E9FF",
+        cursor="8E9CF5", cursor_text="0A0918",
+        selection="2A2652", selected_text="E9EDFF", link="C79BF5",
+        cursor_type=VBAR, blink=True, bright_bold=True,
+        transparency=0.06, blur=True, blur_radius=1.2,
+        tab="8E9CF5",
+        # The opposite discipline to Empire: every slot emissive, because the
+        # conceit is projected mathematics rather than pigment. Gold survives as
+        # a single accent -- the Empire showing through the instrument built to
+        # outlast it.
+        ansi=["121028","E0607A","5FD1A8","E8B84B","6E7FE8","B07FE8","6FC8E8","C6CCEE",
+              "565189","F0839A","82E4C2","F5D07A","8E9CF5","C79BF5","92DCF5","E9EDFF"],
+        blurb=(
+            "Seldon's device: psychohistory as projected light. Fully saturated "
+            "where Empire is muted, because nothing here is pigment -- it is all "
+            "emission. No CRT shader: this is holography, not a tube."),
+    ),
 ]
 
 
@@ -892,6 +946,7 @@ SHELL_KEY = {
     "Tyrell Corporation": "tyrell", "Wallace Corporation": "wallace",
     "Voight-Kampff": "vk",
     "Convair Blueprint": "blueprint", "Convair Whiteprint": "whiteprint",
+    "Empire": "empire", "Prime Radiant": "radiant",
 }
 
 

@@ -62,6 +62,10 @@ _RETRO_BG[outrun]=1A0A2E; _RETRO_FG[outrun]=FF3C8C; _RETRO_CUR[outrun]=2DE2E6; _
 _RETRO_NAME[outrun]='Outrun'; _RETRO_ERA[outrun]='Synthwave · 1986'
 _RETRO_BG[lcars]=000000; _RETRO_FG[lcars]=FF9900; _RETRO_CUR[lcars]=FF9900; _RETRO_ANSI[lcars]='000000 CC6666 66CC99 FFCC00 6688CC CC99CC 99CCCC FF9900 55442A FF8866 99DDAA FFCC66 99AAFF DDAAEE AADDDD FFCC99'
 _RETRO_NAME[lcars]='LCARS'; _RETRO_ERA[lcars]='Star Trek'
+_RETRO_BG[empire]=0B0E1C; _RETRO_FG[empire]=E0BC6A; _RETRO_CUR[empire]=F0C86A; _RETRO_ANSI[empire]='12172B C86A5C 7A9464 D8A94A 5B7FC4 9B6FB0 5FA0B8 C9BFA6 5E6484 DC8274 96B37E F0C86A 7C9EDC B78ACB 7FBFD4 F5EBD2'
+_RETRO_NAME[empire]='Empire'; _RETRO_ERA[empire]='12,067 G.E. · Trantor'
+_RETRO_BG[radiant]=0A0918; _RETRO_FG[radiant]=9AA8F2; _RETRO_CUR[radiant]=8E9CF5; _RETRO_ANSI[radiant]='121028 E0607A 5FD1A8 E8B84B 6E7FE8 B07FE8 6FC8E8 C6CCEE 565189 F0839A 82E4C2 F5D07A 8E9CF5 C79BF5 92DCF5 E9EDFF'
+_RETRO_NAME[radiant]='Prime Radiant'; _RETRO_ERA[radiant]='the Vault · psychohistory'
 _RETRO_BG[steampunk]=1E140A; _RETRO_FG[steampunk]=E8B85C; _RETRO_CUR[steampunk]=C87A3C; _RETRO_ANSI[steampunk]='1A1008 B0562C 7A8A4C E8B85C 6A7A8A A06A8A 4C8A78 C8A878 4A3820 D07A44 A8B86C FFD98A 8A9AAA C89AB0 7ABFA8 F0E0C0'
 _RETRO_NAME[steampunk]='Steampunk'; _RETRO_ERA[steampunk]='Aetheric'
 _RETRO_BG[solarpunk]=F2EFDF; _RETRO_FG[solarpunk]=24614A; _RETRO_CUR[solarpunk]=D9A441; _RETRO_ANSI[solarpunk]='1E2A20 B0503A 3C8A50 C08A2A 2A7A8A 8A5A8A 2E9A88 5A6A58 7A8A78 C86A50 4CA860 D9A441 3A9AAE A87AA8 4CBAA0 24614A'
@@ -87,4 +91,4 @@ _RETRO_NAME[wallace]='Wallace Corporation'; _RETRO_ERA[wallace]='2049'
 _RETRO_BG[vk]=0E0704; _RETRO_FG[vk]=FF8A3C; _RETRO_CUR[vk]=FF8A3C; _RETRO_ANSI[vk]='1E0E04 E0522C B08A4C FF9A48 8A6A4C C0704C D0A060 E8C090 4A2A10 FF7A44 E0B070 FFB870 B08A5C E0906C F0C888 FFE0C0'
 _RETRO_NAME[vk]='Voight-Kampff'; _RETRO_ERA[vk]='Empathy Test'
 
-_RETRO_ALL=(teletype green amber linux sun irix c64 dos amiga next openstep apple2 spectrum atari bbc plan9 blueprint whiteprint matrix tron neuromancer hal pipboy severance cyberpunk bladerunner wopr outrun lcars steampunk solarpunk dieselpunk vaporwave atompunk weyland mother muthur apollo tyrell wallace vk)
+_RETRO_ALL=(teletype green amber linux sun irix c64 dos amiga next openstep apple2 spectrum atari bbc plan9 blueprint whiteprint matrix tron neuromancer hal pipboy severance cyberpunk bladerunner wopr outrun lcars empire radiant steampunk solarpunk dieselpunk vaporwave atompunk weyland mother muthur apollo tyrell wallace vk)
