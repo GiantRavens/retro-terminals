@@ -147,6 +147,9 @@ _retro_wear_prompt() {
 # A dim spec line under the banner, gallery-card style:
 #   Sci-Fi · HAL 9000  ·  1968
 _retro_spec_line() {
+  # Mirrors tools/retro-boot: off unless RETRO_BOOT_SPEC=1, because the banner
+  # above it already says which machine this is.
+  [[ "${RETRO_BOOT_SPEC:-0}" == "1" ]] || return
   local nm="${_RETRO_NAME[$1]}" era="${_RETRO_ERA[$1]}"
   [[ -n "$nm$era" ]] || return
   [[ -n "$era" ]] && nm="$nm  ·  $era"

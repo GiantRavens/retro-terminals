@@ -32,6 +32,8 @@
 #   RETRO_BOOT_WAIT=1        hold on a blinking ENTER gate (default: no gate,
 #                            just a beat after the art)
 #   RETRO_BOOT_CLEAR=0       do not clear the screen before drawing
+#   RETRO_BOOT_SPEC=1        print the "<machine> · <era>" line after the art
+#                            (off: the banner already carries the wordmark)
 #   RETRO_BOOT_HOLD=ms       length of that beat (default 2800). The rc runs
 #                            after it, so this is how long the plate survives
 #                            before Starship/tmux paint over it. 0 = no hold.
@@ -128,7 +130,11 @@ show_art() {
     "$py" "$RETRO_DIR/tools/retro-banner" "$KEY" 2>/dev/null
 }
 
-spec_line() {  # gallery-card line: Sci-Fi · HAL 9000 · 1968
+spec_line() {  # gallery-card line: HAL 9000 · 2001
+  # Off by default: the banner is a wordmark, so this restated the machine's
+  # name directly underneath it. Kept behind a knob because it is the only
+  # identifier if you ever run a machine whose art carries no name.
+  [[ "${RETRO_BOOT_SPEC:-0}" == "1" ]] || return 0
   local nm="${_RETRO_NAME[$KEY]}" era="${_RETRO_ERA[$KEY]}"
   [[ -n "$nm$era" ]] || return 0
   [[ -n "$era" ]] && nm="$nm  ·  $era"
