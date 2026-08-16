@@ -30,7 +30,10 @@
 # Knobs (env):
 #   RETRO_BOOT=0             skip the presentation entirely
 #   RETRO_BOOT_WAIT=1        hold on a blinking ENTER gate (default: no gate,
-#                            just a short beat after the art)
+#                            just a beat after the art)
+#   RETRO_BOOT_HOLD=ms       length of that beat (default 2800). The rc runs
+#                            after it, so this is how long the plate survives
+#                            before Starship/tmux paint over it. 0 = no hold.
 #   RETRO_BOOT_CPS=n         override typing speed
 #   RETRO_BOOT_THROTTLE=120  within this many seconds of the last boot of the
 #                            same machine (think: split pane, new tab), do the
@@ -132,10 +135,13 @@ spec_line() {  # gallery-card line: Sci-Fi · HAL 9000 · 1968
 }
 
 gate() {
-  # Opt-in (RETRO_BOOT_WAIT=1): hold on a blinking ENTER prompt. Default: a
-  # short beat so the reveal lands, then straight on to the shell.
+  # Opt-in (RETRO_BOOT_WAIT=1): hold on a blinking ENTER prompt. Default: hold
+  # on the finished art so the reveal actually lands before the rc runs. 800ms
+  # was too short -- Starship, tmux and anything else the login shell sources
+  # start painting over the plate while you are still reading it.
+  # RETRO_BOOT_HOLD=<ms> tunes it; 0 goes straight through.
   if [[ "${RETRO_BOOT_WAIT:-0}" != "1" ]]; then
-    msleep 800
+    msleep "${RETRO_BOOT_HOLD:-2800}"
     return 0
   fi
   [[ -r /dev/tty ]] || return 0
