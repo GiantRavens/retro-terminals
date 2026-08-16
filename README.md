@@ -62,8 +62,18 @@ retro launch [group]                   # the same thing from the shell
 (palette, prompt, banner) and cannot carry a font, because the cell grid is
 fixed when a window is created and no escape sequence changes it. `retro
 launch` / `retro-random` create the window instead, so the machine arrives
-whole. `retro-random --help` shows how to run it from iTerm2's AutoLaunch
-folder for a random machine at every launch.
+whole. Or wire it into iTerm2 itself:
+
+```bash
+integration/iterm2/install.sh                  # menu entry + AutoLaunch
+integration/iterm2/install.sh --no-autolaunch  # menu entry only
+```
+
+That adds **Scripts ▸ Random Retro Terminal** to the menu bar and fires one at
+every iTerm2 launch. The installer asks iTerm2 where its scripts folder *is*
+(`CustomScriptsFolder`) rather than assuming the documented default — a custom
+folder is set in a pref key, not on disk, so installing to the default when one
+is set fails silently: the file compiles, runs by hand, and is never read.
 
 The controller opens one disposable window at a time. Press Enter in the
 controller to close that exact window and advance (`b` goes back, `q` quits).
