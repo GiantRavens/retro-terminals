@@ -44,7 +44,10 @@ USER_BANNERS = os.environ.get(
 # Old / long names -> canonical banner keys (the retro-prompts.zsh keys).
 ALIASES = {
     "weyland-yutani": "weyland", "hal9000": "hal", "voight-kampff": "vk",
-    "nostromo": "mother", "commodore-64": "c64", "fallout-pip-boy": "pipboy",
+    # The ship's plate is already screen-accurate red/cornflower, so the CRT
+    # machine wants the SAME art, not a byte-identical second copy of it.
+    "nostromocrt": "nostromo",
+    "commodore-64": "c64", "fallout-pip-boy": "pipboy",
 }
 
 # Box-drawing glyphs that default to the frame color when no paint rule hits.

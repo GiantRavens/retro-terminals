@@ -1,23 +1,23 @@
 # Retro Terminals — retro themes for iTerm2, Ghostty & nvim
 
 *Boot your terminal like it's 1983.* Phosphor that glows, a `READY.` that means
-it, HAL watching from the title bar — **39 machines, real and imagined**, that
+it, HAL watching from the title bar — **47 machines, real and imagined**, that
 your terminal *and editor* can wear. On Ghostty the glass actually curves.
 
-[![Ghostty Studio — browse all 39 retro palettes, tune the CRT live, publish a ready-to-use profile](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
+[![Ghostty Studio — browse all 47 retro palettes, tune the CRT live, publish a ready-to-use profile](assets/ghostty-studio.png)](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
 
-**39 retro terminal themes** — real historic machines (`retro`: VT220 green
+**47 retro terminal themes** — real historic machines (`retro`: VT220 green
 phosphor, C64, Amiga…), fictional computers (`sci-fi`: HAL, TRON, Pip-Boy…),
 aesthetic movements (`aesthetic`: vaporwave, steampunk…), and the Alien/Blade
 Runner megacorps (`corp`) — for **iTerm2 or Ghostty**, driven from one
 declarative palette spec:
 
-- **iTerm2** (`build_profiles.py`) — the daily driver. 39 Dynamic Profiles,
+- **iTerm2** (`build_profiles.py`) — the daily driver. 47 Dynamic Profiles,
   boot banners, matching prompts, and a static scanline bezel. Unlimited
   scrollback and session logging. The CRT look is *faked* (blur + bright bold).
-- **Ghostty** (`build_ghostty.py`) — the same 39 palettes as Ghostty themes and
+- **Ghostty** (`build_ghostty.py`) — the same 47 palettes as Ghostty themes and
   configs, plus a **real GPU CRT shader** (curvature, scanlines, chromatic
-  aberration, bloom) on the 17 "tube" machines. The effect iTerm2 can't do.
+  aberration, bloom) on the 21 "tube" machines. The effect iTerm2 can't do.
 
 And it doesn't stop at the terminal window: **nvim follows the theme too** (a
 `retro-ansi` colorscheme + `:Retro` toggle), and so do **tmux** and **starship**
@@ -35,7 +35,7 @@ spec rather than copying it, so nothing drifts. Edit a hex value once, rebuild.
 
 The gallery renders every profile in its real font (the OFL/public-domain fonts
 are embedded, so they show for everyone; the rest need a local install). The
-playground is a live WebGL curved-glass CRT. The **studio** browses all 39
+playground is a live WebGL curved-glass CRT. The **studio** browses all 47
 palettes, tunes the CRT live, and publishes a ready-to-use Ghostty profile.
 
 To tour the profiles as real terminal windows instead of browser previews:
@@ -118,6 +118,12 @@ The screens that raised us. *Shall we play a game?*
 | WOPR | NORAD radar blue — *shall we play a game?* |
 | Outrun | Synthwave hot-pink + cyan on deep purple |
 | LCARS | Star Trek panel palette — orange / gold / mauve / blue on black |
+| Rocinante | *The Expanse* — tactical navy, electric-blue wireframe, MISFIRE red |
+| MCRN | Martian Congressional Republic Navy — hot red and burnt orange on black |
+| MU-TH-UR 6000 | The Nostromo's MOTHER, stylized teal-green |
+| MU-TH-UR 6000 CRT | Screen-accurate MOTHER — bright P1 phosphor green (*interface 2037, ready for inquiry*) |
+| Nostromo | The ship herself — cornflower registration-plate blue on oxblood (*reg. 180924609*) |
+| Nostromo CRT | Screen-accurate status panel — warm pink-white on brick red (*environ ctr / purge*) |
 
 ## `aesthetic` (genre movements)
 
@@ -133,14 +139,13 @@ For when you want a *vibe*, not a specific machine — pick your -punk.
 
 ## `corp` (Alien + Blade Runner megacorps)
 
+The *corporations* — the ships and their computers live in `sci-fi`.
 The two franchises share a universe (Weyland → Tyrell), so they share a pack.
 Spread across distinct hues so they don't all read as "amber sci-fi":
 
 | Profile | Look |
 |---|---|
 | Weyland-Yutani | The Company — amber-gold CRT with green data accents |
-| MU-TH-UR 6000 | The Nostromo's MOTHER, stylized teal-green |
-| MU-TH-UR 6000 CRT | Screen-accurate MOTHER — bright P1 phosphor green (*interface 2037, ready for inquiry*) |
 | Seegson APOLLO | Sevastopol's budget AI — cold blue-white, red working light |
 | Tyrell Corporation | Opulent candle-gold + deep red (*more human than human*) |
 | Wallace Corporation | 2049 brutalist cold teal with one warm accent |
@@ -246,9 +251,34 @@ Everything about a machine's boot is plain-text data you can edit:
 | `~/.config/retro-terminals/banners/<key>.txt` | **your art override** — wins over the shipped file |
 | `~/.config/retro-terminals/boot/<key>.boot` | **your chatter override** |
 | `~/.config/retro-terminals/boot/<key>.sh` | full takeover: your script replaces the whole presentation |
+| `~/.config/retro-terminals/fonts.local` | **your font override** — repoint any machine at a face you own |
+
+**Fonts you own.** The shipped spec only names fonts anyone can install, because
+a missing font doesn't fail — the terminal quietly substitutes its default and
+the profile renders as a lie. But a font you happen to own can be the right face
+for a machine and still be unshippable. Put those in `fonts.local`, one line per
+machine, and both builders pick them up:
+
+```
+# machine    = family, size [, postscript-name [, advance/upem]]
+Nostromo      = Wudoo Mono, 18, WudooMono-Regular, 0.53
+```
+
+The PostScript name is optional (iTerm2 resolves some faces only by it); so is
+advance/upem, which keeps the Nerd Font symbol fallback sized to the cell. A
+machine name that matches nothing is reported, not ignored.
+
+Your overrides reach your own iTerm2 and Ghostty configs — and must not reach
+anything the repo publishes. `ghostty-studio.html` is generated from the same
+spec, so a plain rebuild bakes your private fonts into a public page. Build
+published artifacts with the opt-out:
+
+```bash
+RETRO_NO_LOCAL_FONTS=1 python3 build_ghostty.py --studio
+```
 
 Preview art instantly while editing: `tools/retro-banner hal`
-(`--list` for all 39, `--no-color` to check alignment). Painting is glyph-based
+(`--list` for all 47, `--no-color` to check alignment). Painting is glyph-based
 — redraw the shape and the colors follow the characters.
 
 **Sound.** Boot presentations are intentionally silent. Legacy `#: sound` and
@@ -286,7 +316,7 @@ it works in any shell, in or out of tmux.
 The five "tube" profiles — Green, Amber, Apple II, C64, BBC — carry
 `crt-bezel.png`, a mostly-transparent scanline + vignette overlay drawn behind
 the text. Tune its strength per profile with **Settings ▸ Profiles ▸ Window ▸
-Background image ▸ Blend** (the generator sets `Blend` to `0.45`). Regenerate the
+Background image ▸ Blend** (the generator sets `Blend` to `0.47`). Regenerate the
 overlay itself with ImageMagick if you want it heavier/finer — the two `magick`
 lines are in the project history. This nudges real iTerm toward the browser
 playground's look; it's texture, not the full curved-glass shader.
@@ -315,7 +345,7 @@ It emits:
   shader). Launch a styled window:
   `ghostty --config-file=~/.config/ghostty/retro/<slug>`.
 - `shaders/crt.glsl` — the CRT fragment shader (`shaders/crt.glsl` in this
-  repo), attached to the same 17 "tube" machines that got the iTerm2 bezel.
+  repo), attached to the same 21 "tube" machines that got the iTerm2 bezel.
 - `retro/aliases.sh` — a `ghostty-<name>` launcher per profile, cross-platform
   (macOS `open`, Linux/BSD `ghostty`; picked at runtime via `uname`). `source`
   it from your `~/.zshrc`.
@@ -348,7 +378,7 @@ iTerm2 stays the recommended daily driver (scrollback + logging). Ghostty is the
 ## Ghostty Studio — browse, tune, publish
 
 `ghostty-studio.html` is a self-contained page that closes the loop: **browse**
-all 39 palettes, **tune** the CRT live, and **publish** the result straight back
+all 47 palettes, **tune** the CRT live, and **publish** the result straight back
 into `~/.config/ghostty`.
 
 ```bash

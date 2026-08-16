@@ -1,0 +1,6 @@
+#: cps 24
+@art
+@sleep 0.5
+USCSS NOSTROMO   180924609
+@sleep 0.5
+TOW VEHICLE / REFINERY   -   CREW 7

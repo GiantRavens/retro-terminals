@@ -40,6 +40,10 @@
   .bar .era{margin-left:auto;color:var(--ink-dim);font-size:11px;letter-spacing:.06em}
   .screen{position:relative;padding:14px 15px 16px;min-height:158px;font-size:14px;white-space:pre-wrap}
   .screen .ln{display:block}
+  /* A blank sample line is rendered as an EMPTY span, and an empty block
+     generates no line box -- so every intentional blank row collapsed to
+     zero height and the screens read as one smushed paragraph. */
+  .ln:empty::before{content:"\00a0"}
   .screen .cur{display:inline-block;width:.6em;height:1.05em;transform:translateY(.18em);animation:blink 1.06s steps(1) infinite}
   .screen.under .cur{height:.16em;transform:translateY(.05em)}
   /* iTerm2 draws three cursor shapes; the gallery used to draw two, so the one
@@ -212,6 +216,24 @@ const MF=[
  {name:"LCARS",era:"Star Trek",font:"'Menlo',monospace",bg:"#000000",fg:"#FF9900",bold:"#FFCC66",cur:"#FF9900",curType:"block",
   ansi:["#000000","#CC6666","#66CC99","#FFCC00","#6688CC","#CC99CC","#99CCCC","#FF9900","#55442A","#FF8866","#99DDAA","#FFCC66","#99AAFF","#DDAAEE","#AADDDD","#FFCC99"],
   meta:["Menlo","block","orange / mauve / blue"],s:["LCARS 24-ALPHA","LIBRARY COMPUTER ACCESS/RETRIEVAL","","STARFLEET COMPUTER CORE","STATE YOUR INQUIRY","","LCARS> "]},
+ {name:"Rocinante",era:"The Expanse",font:"'Martian Mono Nr Rg',monospace",bg:"#00091E",fg:"#A8D4E4",bold:"#DCF2FF",cur:"#3874E8",curType:"block",fx:true,
+  ansi:["#001028","#E8405C","#4FC8A8","#D8B45C","#3874E8","#A8508C","#6FB4E8","#A8D4E4","#123A6E","#FF6078","#78E8C8","#F0D080","#5C9CFF","#C878B0","#9CD8F0","#DCF2FF"],
+  meta:["Martian Mono","block","tactical navy + electric blue"],s:["TACTICAL SYS","01 FORE  ACTIVE DEFENSE SYSTEM READY","AUTO TRACK   TORPEDO MAGAZINE 20","","roci> "]},
+ {name:"MCRN",era:"The Expanse · Mars",font:"'Martian Mono Nr Rg',monospace",bg:"#050202",fg:"#E87438",bold:"#FF9A5C",cur:"#F02040",curType:"block",fx:true,
+  ansi:["#2A0C08","#F02040","#78D848","#E8A24A","#9A6650","#D0505C","#C88A5C","#E8B894","#5A2418","#FF5C6E","#98F068","#FFC070","#C08870","#F07A80","#E8B080","#FFE0C8"],
+  meta:["Martian Mono","block","hot red + burnt orange"],s:["MCRN CORVETTE DOOR SYSTEM","SYSTEM INTEGRITY  98.35%","PRIMARY LOCK CPS-04   UNLOCKED","","mcrn> "]},
+ {name:"MU-TH-UR 6000",era:"Nostromo",font:"'Glass TTY VT220',monospace",bg:"#001208",fg:"#43E6B0",bold:"#8CFFD0",cur:"#43E6B0",curType:"block",fx:true,
+  ansi:["#002012","#2CB07A","#22C88A","#43E6B0","#1A8A66","#2CB490","#30D0A0","#43E6B0","#0A5A3C","#4CE0A8","#8CFFD0","#AEFFDE","#30C0A0","#8CFFE0","#B8FFE8","#DFFFF0"],
+  meta:["Glass TTY VT220","block","MOTHER teal-green"],s:["INTERFACE 2037","READY FOR INQUIRY","","> "]},
+ {name:"MU-TH-UR 6000 CRT",era:"Nostromo · accurate",font:"'Glass TTY VT220',monospace",bg:"#000A00",fg:"#33FF2E",bold:"#7CFF6B",cur:"#33FF2E",curType:"block",fx:true,
+  ansi:["#001A00","#0FA00F","#1FC81F","#4AE02A","#0A7A0A","#14B014","#1FD040","#33FF2E","#0A5A0A","#4AE04A","#7CFF6B","#A6FF4A","#2ADD5A","#7CFF8B","#B0FFA0","#DFFFD0"],
+  meta:["Glass TTY VT220","block","P1 phosphor green"],s:["MU/TH/UR 6000","INTERFACE 2037 READY FOR INQUIRY","","> WHAT IS THE NATURE OF THE EMERGENCY?"]},
+ {name:"Nostromo",era:"USCSS · 180924609",font:"'Glass TTY VT220',monospace",bg:"#1A0504",fg:"#7DA2F8",bold:"#B0C8FF",cur:"#7DA2F8",curType:"block",fx:true,
+  ansi:["#2A0A06","#C0402C","#6E96C8","#C8A05C","#5E88EE","#8A7AC0","#7AAECC","#C0CCE8","#3A1410","#E0604C","#92B4FF","#E8C078","#8CB0FF","#AC9CE0","#A8CCE8","#DCE6FF"],
+  meta:["Glass TTY VT220","block","plate blue on oxblood"],s:["COMMERCIAL TOWING VEHICLE  -  REG. 180924609","CREW 7  -  CARGO 20,000,000 TONS ORE REFINERY","","COURSE: SOL  -  MU/TH/UR 6000 STANDING BY","","nostromo> "]},
+ {name:"Nostromo CRT",era:"USCSS · accurate",font:"'Glass TTY VT220',monospace",bg:"#781A1B",fg:"#FFD7D7",bold:"#FFF4F2",cur:"#FFD7D7",curType:"block",fx:true,
+  ansi:["#501012","#E8705C","#D8A49C","#F0C4B0","#C0908C","#DCA0A8","#F0CAC6","#FFD7D7","#6E2020","#FF8A78","#F0C8C0","#FFDCC8","#DCB0AC","#F5BCC4","#FFE4E0","#FFF4F2"],
+  meta:["Glass TTY VT220","block","panel white on brick red"],s:["ENVIRON CTR","PURGE","","24556   DR 5","","> "]},
  {name:"Empire",era:"12,067 G.E. · Trantor",font:"'Radiant Prime Mono',monospace",bg:"#D9CAB4",fg:"#1B2C4E",bold:"#0F1A2E",cur:"#1E3A6E",curType:"block",
   ansi:["#3A3226","#8E3B32","#4B5944","#6E4F18","#1E3A6E","#6B4A6B","#365B5B","#5E5344","#6E6354","#6E332B","#3D4737","#573F16","#254475","#543D54","#2F4949","#0F1A2E"],
   meta:["Radiant Prime Mono","block","imperial gold"],s:["IMPERIAL PALACE — TRANTOR","CLEON XII · DAY 4,711","STAR BRIDGE     NOMINAL","","PLEASE RESPECT AND","ENJOY THE PEACE.","","$ "]},
@@ -242,12 +264,6 @@ const MC=[
  {name:"Weyland-Yutani",era:"The Company",font:"'Glass TTY VT220',monospace",bg:"#0C0A04",fg:"#F5B942",bold:"#FFD97A",cur:"#F5B942",curType:"block",fx:true,
   ansi:["#1A1206","#C85A2C","#6BA84C","#F5B942","#7A8A5C","#B08A5C","#8AB86C","#E0C88C","#4A3A18","#E07A44","#9BD86C","#FFD97A","#A8B87C","#D0A87C","#B8E098","#FFF0C8"],
   meta:["Glass TTY VT220","block","amber + green data"],s:["WEYLAND-YUTANI CORP  -  DIVISION 12","","BUILDING BETTER WORLDS","","SPECIAL ORDER 937: CLASSIFIED","","wy> "]},
- {name:"MU-TH-UR 6000",era:"Nostromo",font:"'Glass TTY VT220',monospace",bg:"#001208",fg:"#43E6B0",bold:"#8CFFD0",cur:"#43E6B0",curType:"block",fx:true,
-  ansi:["#002012","#2CB07A","#22C88A","#43E6B0","#1A8A66","#2CB490","#30D0A0","#43E6B0","#0A5A3C","#4CE0A8","#8CFFD0","#AEFFDE","#30C0A0","#8CFFE0","#B8FFE8","#DFFFF0"],
-  meta:["Glass TTY VT220","block","MOTHER teal-green"],s:["INTERFACE 2037","READY FOR INQUIRY","","> "]},
- {name:"MU-TH-UR 6000 CRT",era:"Nostromo · accurate",font:"'Glass TTY VT220',monospace",bg:"#000A00",fg:"#33FF2E",bold:"#7CFF6B",cur:"#33FF2E",curType:"block",fx:true,
-  ansi:["#001A00","#0FA00F","#1FC81F","#4AE02A","#0A7A0A","#14B014","#1FD040","#33FF2E","#0A5A0A","#4AE04A","#7CFF6B","#A6FF4A","#2ADD5A","#7CFF8B","#B0FFA0","#DFFFD0"],
-  meta:["Glass TTY VT220","block","P1 phosphor green"],s:["MU/TH/UR 6000","INTERFACE 2037 READY FOR INQUIRY","","> WHAT IS THE NATURE OF THE EMERGENCY?"]},
  {name:"Seegson APOLLO",era:"Sevastopol",font:"'Menlo',monospace",bg:"#0A1018",fg:"#A8C8DC",bold:"#DCEAF4",cur:"#FF6A4C",curType:"block",fx:true,
   ansi:["#0A141C","#E05A4C","#6EB0A0","#D0B060","#5A8AB0","#9A7AB0","#7AB0C8","#A8C8DC","#2A3A48","#FF7A6C","#90D0C0","#E8D090","#7AAAD0","#C0A0D0","#A0D0E4","#DCEAF4"],
   meta:["Menlo","block","cold blue + red light"],s:["SEEGSON APOLLO","PERSONAL TERMINAL MODEL 3","","How can I help you return to work?","","apollo> "]},
@@ -288,10 +304,10 @@ function buildCard(m){
 }
 
 const SECTIONS=[
-  {title:"Real machines", tag:"retro", sub:"Fifteen from the phosphor age — authentic palette, period font, cursor.", list:M},
-  {title:"Fictional computers", tag:"sci-fi", sub:"Eleven screens from film & games — the Matrix, HAL, Neuromancer, LCARS, Night City.", list:MF},
+  {title:"Real machines", tag:"retro", sub:"Eighteen from the phosphor age — authentic palette, period font, cursor.", list:M},
+  {title:"Fictional computers", tag:"sci-fi", sub:"Nineteen screens from film, TV & games — the Matrix, HAL, LCARS, the Roci, MU/TH/UR.", list:MF},
   {title:"Aesthetic movements", tag:"aesthetic", sub:"Five genre looks — steampunk brass, solarpunk gardens, vaporwave pastels.", list:MA},
-  {title:"Megacorps", tag:"corp", sub:"Six from the Alien + Blade Runner universe — Weyland-Yutani, MU/TH/UR, Tyrell, Wallace.", list:MC},
+  {title:"Megacorps", tag:"corp", sub:"Five from the Alien + Blade Runner universe — Weyland-Yutani, Seegson, Tyrell, Wallace.", list:MC},
 ];
 const root=document.getElementById("sections");
 for(const s of SECTIONS){

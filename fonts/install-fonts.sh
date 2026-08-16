@@ -13,11 +13,11 @@ UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
 have() { system_profiler SPFontsDataType 2>/dev/null | grep -qi "Family: $1"; }
 valid() { case "$(file -b "$1" 2>/dev/null)" in *TrueType*|*OpenType*|*Zip*) return 0;; *) return 1;; esac; }
 
-echo "==> Homebrew casks (Terminus, IBM 3270, Departure Mono, Nerd Font symbols)"
+echo "==> Homebrew casks (Terminus, IBM 3270, Departure Mono, Martian Mono, Nerd Font symbols)"
 if command -v brew >/dev/null 2>&1; then
   # font-symbols-only-nerd-font = Symbols Nerd Font Mono ("SymbolsNFM"),
   # the icons-only non-ASCII fallback every profile uses for nvim devicons.
-  for c in font-terminus font-3270 font-departure-mono font-symbols-only-nerd-font; do
+  for c in font-terminus font-3270 font-departure-mono font-martian-mono font-symbols-only-nerd-font; do
     brew install --cask "$c" >/dev/null 2>&1 && echo "   ok: $c" || echo "   (already installed or failed: $c)"
   done
 else

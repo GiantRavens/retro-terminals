@@ -129,6 +129,7 @@ FONT_CELL_EM = {
     "Print Char 21": 0.875,
     "Bedstead": 0.60,
     "Convair Mono": 0.548,   # 614/1120 advance
+    "Martian Mono Nr Rg": 0.65,    # 650/1000 advance
     "Radiant Prime Mono": 0.704,   # 760/1080 advance -- the widest cell here,
                                    # so Nerd Font fallback glyphs need scaling
                                    # up to match or icons sit small in the cell
@@ -801,10 +802,93 @@ FICTION = [
             "is 77% black. Empire is a lit surface and this is a light source -- the "
             "pair inverts polarity, not hue. No CRT shader: holography, not a tube."),
     ),
+    # The Expanse. Both are Martian hulls, so both wear Martian Mono -- a
+    # geometric OFL mono that install-fonts.sh can actually fetch. Each width
+    # is its own family ("Martian Mono Nr Rg"), so iTerm2 gets the PostScript
+    # name and Ghostty gets the family, same split Convair and Radiant use.
+    #
+    # Roci: her tactical board -- deep navy ground, electric-blue wireframes,
+    # pale cyan labels, and MISFIRE red. Sampled off the PDC display.
+    machine("Rocinante", "Martian Mono Nr Rg", 13, ns="Sci-Fi",
+        iterm_font="MartianMono-NrRg",
+        bg="00091E", fg="A8D4E4", bold="DCF2FF", cursor="3874E8", cursor_text="00091E",
+        selection="123A6E", selected_text="DCF2FF", link="6FB4E8",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.5,
+        ansi=["001028","E8405C","4FC8A8","D8B45C","3874E8","A8508C","6FB4E8","A8D4E4",
+              "123A6E","FF6078","78E8C8","F0D080","5C9CFF","C878B0","9CD8F0","DCF2FF"],
+        blurb="The Expanse's Roci: tactical navy, electric-blue wireframe, MISFIRE red."),
+
+    # MCRN: hot red and burnt orange on black. The gold-frame door panel is the
+    # exception on that sheet, not the rule -- the instrument boards are red
+    # wireframes, oxblood structure and bronze mid-tones, so the amber is
+    # demoted to the yellow slot where it belongs. Green survives in slot 2
+    # because the UNLOCKED panel is real, which puts shell success/error onto
+    # the ship's own status colours.
+    machine("MCRN", "Martian Mono Nr Rg", 13, ns="Sci-Fi",
+        iterm_font="MartianMono-NrRg",
+        bg="050202", fg="E87438", bold="FF9A5C", cursor="F02040", cursor_text="050202",
+        selection="4A1810", selected_text="FFE0C8", link="F0A050",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.5,
+        ansi=["2A0C08","F02040","78D848","E8A24A","9A6650","D0505C","C88A5C","E8B894",
+              "5A2418","FF5C6E","98F068","FFC070","C08870","F07A80","E8B080","FFE0C8"],
+        blurb="Martian Congressional Republic Navy: hot red and burnt orange on black."),
+
+    machine("MU-TH-UR 6000", "Glass TTY VT220", 18, ns="Sci-Fi",
+        bg="001208", fg="43E6B0", bold="8CFFD0", cursor="43E6B0", cursor_text="001208",
+        selection="0A5A3C", selected_text="DFFFF0", link="8CFFE0",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.6, vspacing=1.05,
+        ansi=["002012","2CB07A","22C88A","43E6B0","1A8A66","2CB490","30D0A0","43E6B0",
+              "0A5A3C","4CE0A8","8CFFD0","AEFFDE","30C0A0","8CFFE0","B8FFE8","DFFFF0"],
+        blurb="MOTHER, stylized teal-green. See 'MU-TH-UR 6000 CRT' for the screen-accurate green."),
+
+    machine("MU-TH-UR 6000 CRT", "Glass TTY VT220", 18, ns="Sci-Fi",
+        bg="000A00", fg="33FF2E", bold="7CFF6B", cursor="33FF2E", cursor_text="000A00",
+        selection="0A5A0A", selected_text="DFFFD0", link="7CFF8B",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.7, vspacing=1.06,
+        ansi=["001A00","0FA00F","1FC81F","4AE02A","0A7A0A","14B014","1FD040","33FF2E",
+              "0A5A0A","4AE04A","7CFF6B","A6FF4A","2ADD5A","7CFF8B","B0FFA0","DFFFD0"],
+        blurb="Screen-accurate MU/TH/UR: bright P1 phosphor green on black, heavy scanlines."),
+
+    # The ship, not her computer. Her boot plate is cornflower linework on a
+    # flat red field -- which is 2.6:1, below every readability threshold there
+    # is, so the accurate red lives in banners/nostromo.txt (a plate you look
+    # at) and the ground here is the oxblood you can actually read text on.
+    # Same split MU-TH-UR already ships as stylized-vs-CRT.
+    machine("Nostromo", "Glass TTY VT220", 18, ns="Sci-Fi",
+        bg="1A0504", fg="7DA2F8", bold="B0C8FF", cursor="7DA2F8", cursor_text="1A0504",
+        selection="3A1410", selected_text="DCE6FF", link="8CB0FF",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.8,
+        ansi=["2A0A06","C0402C","6E96C8","C8A05C","5E88EE","8A7AC0","7AAECC","C0CCE8",
+              "3A1410","E0604C","92B4FF","E8C078","8CB0FF","AC9CE0","A8CCE8","DCE6FF"],
+        blurb="The ship herself: cornflower registration-plate blue on oxblood."),
+
+    # Not the registration plate -- the ship's STATUS panels (ENVIRON CTR /
+    # PURGE / 24556 DR 5): warm pink-white on brick red, both sampled straight
+    # off frame. The plate's cornflower-on-red is a graphic you look at and
+    # measures 2.60:1; this is text the crew actually reads and measures
+    # 8.13:1, so the accurate choice is also the legible one and nothing here
+    # needs a min_contrast net. Monochrome warm ramp, same discipline as
+    # MU-TH-UR CRT's all-green: authenticity over syntax colour.
+    machine("Nostromo CRT", "Glass TTY VT220", 18, ns="Sci-Fi",
+        bg="781A1B", fg="FFD7D7", bold="FFF4F2", cursor="FFD7D7", cursor_text="781A1B",
+        selection="501012", selected_text="FFF4F2", link="FFDCC8",
+        cursor_type=BOX, blink=True, bright_bold=True,
+        transparency=0.05, blur=True, blur_radius=1.7, vspacing=1.06,
+        ansi=["501012","E8705C","D8A49C","F0C4B0","C0908C","DCA0A8","F0CAC6","FFD7D7",
+              "6E2020","FF8A78","F0C8C0","FFDCC8","DCB0AC","F5BCC4","FFE4E0","FFF4F2"],
+        blurb="Screen-accurate status panel: warm pink-white on brick red."),
+
 ]
 
 
-FTUBES = {"The Matrix", "TRON", "HAL 9000", "Fallout Pip-Boy", "Blade Runner", "WOPR"}
+FTUBES = {"The Matrix", "TRON", "HAL 9000", "Fallout Pip-Boy", "Blade Runner", "WOPR",
+          "MU-TH-UR 6000", "MU-TH-UR 6000 CRT", "Nostromo", "Nostromo CRT",
+          "Rocinante", "MCRN"}
 
 
 # ===========================================================================
@@ -874,24 +958,6 @@ CORP = [
               "4A3A18","E07A44","9BD86C","FFD97A","A8B87C","D0A87C","B8E098","FFF0C8"],
         blurb="The Company: amber-gold CRT with green data accents. Building Better Worlds."),
 
-    machine("MU-TH-UR 6000", "Glass TTY VT220", 18, ns="Corp",
-        bg="001208", fg="43E6B0", bold="8CFFD0", cursor="43E6B0", cursor_text="001208",
-        selection="0A5A3C", selected_text="DFFFF0", link="8CFFE0",
-        cursor_type=BOX, blink=True, bright_bold=True,
-        transparency=0.05, blur=True, blur_radius=1.6, vspacing=1.05,
-        ansi=["002012","2CB07A","22C88A","43E6B0","1A8A66","2CB490","30D0A0","43E6B0",
-              "0A5A3C","4CE0A8","8CFFD0","AEFFDE","30C0A0","8CFFE0","B8FFE8","DFFFF0"],
-        blurb="MOTHER, stylized teal-green. See 'MU-TH-UR 6000 CRT' for the screen-accurate green."),
-
-    machine("MU-TH-UR 6000 CRT", "Glass TTY VT220", 18, ns="Corp",
-        bg="000A00", fg="33FF2E", bold="7CFF6B", cursor="33FF2E", cursor_text="000A00",
-        selection="0A5A0A", selected_text="DFFFD0", link="7CFF8B",
-        cursor_type=BOX, blink=True, bright_bold=True,
-        transparency=0.05, blur=True, blur_radius=1.7, vspacing=1.06,
-        ansi=["001A00","0FA00F","1FC81F","4AE02A","0A7A0A","14B014","1FD040","33FF2E",
-              "0A5A0A","4AE04A","7CFF6B","A6FF4A","2ADD5A","7CFF8B","B0FFA0","DFFFD0"],
-        blurb="Screen-accurate MU/TH/UR: bright P1 phosphor green on black, heavy scanlines."),
-
     machine("Seegson APOLLO", "Menlo", 13, ns="Corp",
         bg="0A1018", fg="A8C8DC", bold="DCEAF4", cursor="FF6A4C", cursor_text="0A1018",
         selection="2A3A48", selected_text="DCEAF4", link="7AAAD0",
@@ -929,7 +995,7 @@ CORP = [
 ]
 
 
-CTUBES = {"Weyland-Yutani", "MU-TH-UR 6000", "MU-TH-UR 6000 CRT", "Seegson APOLLO",
+CTUBES = {"Weyland-Yutani", "Seegson APOLLO",
           "Tyrell Corporation", "Voight-Kampff"}
 
 
@@ -947,6 +1013,103 @@ def _attach(profiles, tubes):
 
 _attach(FICTION, FTUBES)
 _attach(CORP,    CTUBES)
+
+
+# ---------------------------------------------------------------------------
+# Local font overrides  --  host-local, never committed
+# ---------------------------------------------------------------------------
+# The shipped spec may only name fonts that everyone can actually get, because
+# a machine whose font is missing does not fail -- the terminal quietly
+# substitutes its default and the profile renders as a lie. But a font you
+# happen to own can be the RIGHT face for a machine and still be unshippable:
+# Wudoo Mono is the Nostromo's panel type and is also 93 glyphs of pure ASCII
+# with no ` and no ~, which is fine for you and wrong for a stranger cloning
+# this repo.
+#
+# So fonts get the same treatment banners already have: the repo owns the
+# portable default, and ~/.config/retro-terminals/ owns your opinion. One line
+# per machine, family and size, optional PostScript name (iTerm2 resolves some
+# faces only by that) and optional advance/upem for the symbol-fallback sizing:
+#
+#     # machine            = family, size [, postscript-name [, cell-em]]
+#     Nostromo             = Wudoo Mono, 18, WudooMono-Regular, 0.53
+#
+# Unknown machine names are reported rather than ignored -- a typo here would
+# otherwise present exactly as "the override silently did nothing".
+LOCAL_FONTS = os.path.expanduser("~/.config/retro-terminals/fonts.local")
+
+
+def _parse_local_fonts(path):
+    """-> {machine: (family, size, postscript|None, cell_em|None)}. Missing file
+    is the normal case, not an error."""
+    out = {}
+    if not os.path.isfile(path):
+        return out
+    with open(path, encoding="utf-8") as f:
+        for lineno, raw in enumerate(f, 1):
+            line = raw.split("#", 1)[0].strip()
+            if not line:
+                continue
+            if "=" not in line:
+                print(f"  fonts.local:{lineno}: no '=' -- skipped: {line}")
+                continue
+            name, rhs = (s.strip() for s in line.split("=", 1))
+            parts = [s.strip() for s in rhs.split(",")]
+            if len(parts) < 2 or not parts[1].isdigit():
+                print(f"  fonts.local:{lineno}: need 'family, size' -- skipped: {line}")
+                continue
+            family, size = parts[0], int(parts[1])
+            ps = parts[2] if len(parts) > 2 and parts[2] else None
+            em = float(parts[3]) if len(parts) > 3 and parts[3] else None
+            out[name] = (family, size, ps, em)
+    return out
+
+
+def apply_local_fonts(path=LOCAL_FONTS):
+    """Repoint machines at locally-installed faces. Applied at import time so
+    build_ghostty.py -- which imports these lists rather than copying them --
+    inherits the same overrides instead of drifting from iTerm2.
+
+    RETRO_NO_LOCAL_FONTS=1 opts out. That exists because the overrides SHOULD
+    reach your own iTerm2 and Ghostty configs and MUST NOT reach anything the
+    repo publishes: ghostty-studio.html is generated from this same spec, so a
+    plain rebuild baked "Lab Mono" and "Wudoo Mono" into a public page, naming
+    fonts a stranger cannot install. Build public artifacts with the opt-out."""
+    if os.environ.get("RETRO_NO_LOCAL_FONTS") == "1":
+        return []
+    over = _parse_local_fonts(path)
+    if not over:
+        return []
+    known = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORP) for p in g}
+    applied, unknown = [], []
+    for name, (family, size, ps, em) in over.items():
+        p = known.get(name)
+        if p is None:
+            unknown.append(name)
+            continue
+        if em:
+            FONT_CELL_EM[family] = em      # keeps symbol fallback + demo sizing true
+        p["Normal Font"] = f"{ps or family} {size}"
+        p["Ghostty Font Family"] = family
+        # A local face has its own weights; never carry the shipped style over.
+        p.pop("Ghostty Font Style", None)
+        if p.get("Use Non-ASCII Font"):
+            p["Non Ascii Font"] = (
+                f"{SYMBOLS_FONT} {max(6, round(size * FONT_CELL_EM.get(family, 0.6)))}"
+            )
+        else:
+            p["Non Ascii Font"] = p["Normal Font"]
+        applied.append(f"{name} -> {family} {size}")
+    if applied:
+        print(f"Local font overrides ({os.path.basename(path)}):")
+        for a in applied:
+            print(f"    {a}")
+    if unknown:
+        print(f"  WARNING: fonts.local names no such machine: {', '.join(unknown)}")
+    return applied
+
+
+apply_local_fonts()
 
 
 # ---------------------------------------------------------------------------
@@ -981,7 +1144,9 @@ SHELL_KEY = {
     "Outrun": "outrun", "LCARS": "lcars", "Steampunk": "steampunk",
     "Solarpunk": "solarpunk", "Dieselpunk": "dieselpunk", "Vaporwave": "vaporwave",
     "Atompunk": "atompunk", "Weyland-Yutani": "weyland", "MU-TH-UR 6000": "mother",
-    "MU-TH-UR 6000 CRT": "muthur", "Seegson APOLLO": "apollo",
+    "MU-TH-UR 6000 CRT": "muthur", "Nostromo": "nostromo", "Nostromo CRT": "nostromocrt",
+    "Rocinante": "roci", "MCRN": "mcrn",
+    "Seegson APOLLO": "apollo",
     "Tyrell Corporation": "tyrell", "Wallace Corporation": "wallace",
     "Voight-Kampff": "vk",
     "Convair Blueprint": "blueprint", "Convair Whiteprint": "whiteprint",

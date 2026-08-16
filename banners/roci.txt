@@ -1,0 +1,32 @@
+#: bg 00091E
+#: base A8D4E4
+#: frame 3874E8
+#: paint DCF2FF _/\|,
+#: paint 3874E8 █
+#: paint 123A6E ░
+#: line 9 6FB4E8
+#: line 10 6FB4E8
+#: line 11 6FB4E8
+#: line 12 6FB4E8
+#: line 13 6FB4E8
+#: line 14 6FB4E8
+┌───────────────────────────────────────────────────────────────────────┐
+│                                                                       │
+│               ____             _                   __                 │
+│              / __ \____  _____(_)___  ____ _____  / /____             │
+│             / /_/ / __ \/ ___/ / __ \/ __ `/ __ \/ __/ _ \            │
+│            / _, _/ /_/ / /__/ / / / / /_/ / / / / /_/  __/            │
+│           /_/ |_|\____/\___/_/_/ /_/\__,_/_/ /_/\__/\___/             │
+│                                                                       │
+│                          AN INDEPENDENT SHIP                          │
+│                         OWNED AND OPERATED BY                         │
+│                     JAMES HOLDEN  •  NAOMI NAGATA                     │
+│                      ALEX KAMAL  •  AMOS BURTON                       │
+│                                                                       │
+│                         A LEGITIMATE SALVAGE                          │
+│                                                                       │
+├─ TACTICAL SYS ────────────────────────────────────────────────────────┤
+│   PDC 01 FORE █████░  03 MID ████░░  05 AFT █████░   AUTO TRACK       │
+│   PDC 02 FORE ███░░░  04 MID █████░  06 AFT ██████   READY            │
+│   TORPEDO MAGAZINE 20  ·  EPSTEIN DRIVE NOMINAL  ·  40MM CASELESS     │
+└───────────────────────────────────────────────────────────────────────┘

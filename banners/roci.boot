@@ -1,0 +1,7 @@
+#: cps 24
+@art
+@sleep 0.4
+REACTOR ONLINE   -   EPSTEIN DRIVE NOMINAL
+@sleep 0.5
+PDC 01-06 AUTO TRACK   -   TORPEDO MAGAZINE 20
+@sleep 0.5
