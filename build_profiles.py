@@ -153,7 +153,7 @@ def machine(
     aa=True,            # anti-alias ASCII glyphs (False = crisp pixels)
     symbols=True,       # Nerd Font fallback for non-ASCII (icons in nvim etc.)
     bright_bold=True,
-    min_contrast=0.0,
+    min_contrast=None,  # None = auto; see the light-ground rule below
     ghostty_min_contrast=None,  # WCAG ratio (1..21); Ghostty-specific
     transparency=0.0,
     blur=False,
@@ -167,6 +167,33 @@ def machine(
     font_style=None,    # Ghostty-only style member override; see below
     use_bold_font=True, # False = bold text is a COLOR change, not a heavier face
 ):
+    # LIGHT GROUNDS GET REVERSE-VIDEO PROTECTION BY DEFAULT.
+    #
+    # A palette is designed for coloured text ON the ground. Reverse video
+    # inverts that: the colour becomes the CELL and the ground becomes the
+    # glyph -- so on a pale machine, every mid-tone slot turns into pale ink on
+    # a mid field, which is the one combination irradiation punishes hardest.
+    # Contrast ratio is symmetric and says these are the same; legibility is
+    # not, and they are not.
+    #
+    # This was found as "whiteprint's reversed white is hard to read", but
+    # Whiteprint has 4 weak slots and Atompunk has 12 -- 9 of the 10 light
+    # machines were unprotected and only Solarpunk had ever been fixed, by
+    # hand. Fixing the instance would have left the class, and the next light
+    # machine would arrive unprotected too.
+    #
+    # Minimum Contrast is the right tool precisely because it does NOT edit the
+    # palette: iTerm2 and Ghostty nudge the foreground at RENDER time, only for
+    # pairings that are actually too close. Plan 9's exact acme colours and the
+    # Spectrum's exact ROM colours stay exact in the swatches; only unreadable
+    # combinations move.
+    if min_contrast is None:
+        r, g, b = (int(bg[i:i + 2], 16) / 255 for i in (0, 2, 4))
+        light = 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5   # perceptual enough
+        min_contrast = 0.45 if light else 0.0
+    if ghostty_min_contrast is None and min_contrast:
+        ghostty_min_contrast = 3.0
+
     bold = bold or fg
     cursor = cursor or fg
     cursor_text = cursor_text or bg
@@ -1063,13 +1090,33 @@ def sync_gallery(repo_dir, apply=True):
         return block
 
     out = re.sub(r'\{name:"([^"]+)".*?(?=\n \{name:"|\n\];)', fix, html, flags=re.S)
+
+    # The check above only runs on entries the GALLERY has -- so it detects a
+    # stale entry but is blind to a missing one. A machine added to the spec and
+    # never given a gallery entry is simply absent from the loop, and "already
+    # in sync" prints exactly the same. Both Foundation machines went in that
+    # way; the entries happened to be hand-written correctly, which is luck, not
+    # verification. A one-directional drift check is half a drift check.
+    listed = set(re.findall(r'\{name:"([^"]+)"', out))
+    for name in spec:
+        if name not in listed:
+            drift.append((name, "absent from gallery"))
+
     if apply and out != html:
         with open(path, "w", encoding="utf-8") as f:
             f.write(out)
     if apply:
-        n = len({d[0] for d in drift})
-        print(f"Synced gallery colors -> index.html"
-              f"{f'  ({len(drift)} fields on {n} machines were stale)' if drift else '  (already in sync)'}")
+        missing = [d[0] for d in drift if d[1] == "absent from gallery"]
+        stale = [d for d in drift if d[1] != "absent from gallery"]
+        n = len({d[0] for d in stale})
+        msg = "Synced gallery colors -> index.html"
+        msg += (f"  ({len(stale)} fields on {n} machines were stale)" if stale
+                else "  (already in sync)")
+        # Loud, because nothing downstream will notice: the gallery just renders
+        # one machine fewer than the pack actually ships.
+        if missing:
+            msg += f"\n  WARNING: no gallery entry for {', '.join(missing)}"
+        print(msg)
     return drift
 
 

@@ -11,13 +11,29 @@ import build_profiles  # noqa: E402
 
 
 def profile_named(name):
+    """Look a machine up by its exact name.
+
+    This used to match on a " · <name>" suffix, from when profiles carried a
+    pack prefix ("Sci-Fi · Cyberpunk 2077"). 58147dd dropped that prefix -- and
+    took this lookup with it, silently: `next()` raised StopIteration, which
+    reads as a test ERROR rather than a failed assertion, so the contrast check
+    below stopped checking anything the same day the commit message claimed to
+    have fixed contrast. A disarmed test is worse than a missing one; it reports
+    green on the suite it belongs to and nobody re-reads the traceback.
+    """
     profiles = (
         build_profiles.PROFILES
         + build_profiles.FICTION
         + build_profiles.AESTHETIC
         + build_profiles.CORP
     )
-    return next(profile for profile in profiles if profile["Name"].endswith(f" · {name}"))
+    for profile in profiles:
+        if profile["Name"] == name:
+            return profile
+    raise AssertionError(
+        f"no machine named {name!r}; the spec has "
+        f"{', '.join(sorted(p['Name'] for p in profiles))}"
+    )
 
 
 class SoundAndContrastTests(unittest.TestCase):
