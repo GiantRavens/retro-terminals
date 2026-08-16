@@ -1100,12 +1100,16 @@ def apply_local_fonts(path=LOCAL_FONTS):
         else:
             p["Non Ascii Font"] = p["Normal Font"]
         applied.append(f"{name} -> {family} {size}")
+    # stderr, not stdout: every tool that imports this spec inherits the notice,
+    # and a tool whose output is meant to be read or piped (retro-random --print)
+    # should not have build chatter in it.
     if applied:
-        print(f"Local font overrides ({os.path.basename(path)}):")
+        print(f"Local font overrides ({os.path.basename(path)}):", file=sys.stderr)
         for a in applied:
-            print(f"    {a}")
+            print(f"    {a}", file=sys.stderr)
     if unknown:
-        print(f"  WARNING: fonts.local names no such machine: {', '.join(unknown)}")
+        print(f"  WARNING: fonts.local names no such machine: {', '.join(unknown)}",
+              file=sys.stderr)
     return applied
 
 

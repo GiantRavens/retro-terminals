@@ -215,9 +215,30 @@ retro() {
   if [[ -z "$name" ]]; then
     print -r -- "retro <machine> — one of:"
     print -r -- "  ${(k)_RETRO_PROMPTS}"
-    print -r -- "  retro random   (surprise me: colors + prompt + banner)"
+    print -r -- "  retro random   (surprise me here: colors + prompt + banner)"
+    print -r -- "  retro launch [group]  (new window, random machine, its own font)"
     print -r -- "  retro off      (restore your normal prompt and colors)"
     return 0
+  fi
+
+  # `retro random` repaints THIS window: palette, prompt, banner. It cannot
+  # carry a font -- the cell grid is fixed when a window is created, and no
+  # escape sequence changes it. `retro launch` therefore makes a NEW window
+  # from the named profile, which is the only way to wear the whole machine.
+  if [[ "$name" == launch ]]; then
+    if [[ -x "$_RETRO_DIR/tools/retro-random" ]]; then
+      # zsh does not word-split an expansion, so ${2:+--group "$2"} would
+      # arrive as ONE argv entry ("--group corp") and argparse exits 2.
+      if [[ -n "${2:-}" ]]; then
+        "$_RETRO_DIR/tools/retro-random" --group "$2"
+      else
+        "$_RETRO_DIR/tools/retro-random"
+      fi
+    else
+      print -r -- "retro: tools/retro-random missing from $_RETRO_DIR"
+      return 1
+    fi
+    return
   fi
 
   if [[ "$name" == random ]]; then

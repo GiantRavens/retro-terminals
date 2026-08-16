@@ -49,6 +49,22 @@ tools/retro-demo --group retro --limit 3 # a short sampler
 tools/retro-demo --manifest              # inspect the launch plan only
 ```
 
+Or wear one at random, in a **new** window so it brings its own font:
+
+```bash
+tools/retro-random                     # any of the 47
+tools/retro-random --group sci-fi      # one pack
+tools/retro-random --terminal ghostty  # Ghostty instead of iTerm2
+retro launch [group]                   # the same thing from the shell
+```
+
+`retro random` is a different thing: it repaints the window you are already in
+(palette, prompt, banner) and cannot carry a font, because the cell grid is
+fixed when a window is created and no escape sequence changes it. `retro
+launch` / `retro-random` create the window instead, so the machine arrives
+whole. `retro-random --help` shows how to run it from iTerm2's AutoLaunch
+folder for a random machine at every launch.
+
 The controller opens one disposable window at a time. Press Enter in the
 controller to close that exact window and advance (`b` goes back, `q` quits).
 It tracks iTerm2 by window ID and Ghostty by spawned process, so existing user
