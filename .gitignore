@@ -4,3 +4,6 @@ __pycache__/
 # pin (punchlist) — local task tracking, not for the public repo
 .punchlist/
 tasks/
+# reference/ — local stash of source images for banner art; found media,
+# stays out of the public repo
+reference/
