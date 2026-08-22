@@ -1,9 +1,7 @@
 # Retro Terminals
 
 **47 retro terminal recreations for iTerm2, Ghostty & nvim.** Real machines
-and imagined ones — phosphor that glows, a `READY.` that means it, HAL
-watching from the title bar. Add curved-glass CRT effects in Ghostty, and use
-the custom font and logo tools to recreate your own.
+and imagined ones with optional CRT effect in Ghostty, custom fonts, and logo to ascii conversion tools to built your own variations. 
 
 **Test-drive the palettes in the
 [Ghostty Studio](https://giantravens.github.io/retro-terminals/ghostty-studio.html)
