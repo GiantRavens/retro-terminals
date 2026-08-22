@@ -307,6 +307,28 @@ Preview art instantly while editing: `tools/retro-banner hal`
 (`--list` for all 47, `--no-color` to check alignment). Painting is glyph-based
 — redraw the shape and the colors follow the characters.
 
+**Banner-art generators.** Two tools produce banner-ready glyph art:
+
+```bash
+# any image -> bare glyphs (no ANSI), ready to paste under #: directives
+tools/image-to-ascii.py logo.png --mode braille --plain --trim -w 44
+tools/image-to-ascii.py logo.png --mode braille --plain --invert -t 72   # light-on-dark source
+tools/image-to-ascii.py photo.png --mode ansi --tint 0,220,255           # standalone colored art
+
+# parametric atom diagram (atompunk) - geometry as tunable numbers
+tools/atom-diagram.py
+```
+
+`image-to-ascii.py` samples an image through ImageMagick (`brew install
+imagemagick`); braille mode packs 2x4 square subpixels per cell, the smoothest
+of its four modes. `--plain` emits bare glyphs so `retro-banner` keeps doing
+the painting; `--invert` flips ink polarity for light-on-dark sources; `-t`
+sets the luminance cutoff (e.g. keep a logo's yellow but drop its gray).
+`atom-diagram.py` renders the atompunk orbital diagram from ellipse equations
+instead of pixels — orbits in braille, nucleus as `▓` and electrons as `●` so
+glyph-keyed paint rules can color them independently. The winged-W in
+`mother`/`muthur` and the atom in `atompunk` came from these.
+
 **Sound.** Boot presentations are intentionally silent. Legacy `#: sound` and
 `@bell` directives remain accepted as no-ops so existing chatter overrides do
 not break; sound design can return later as an intentional, opt-in system.

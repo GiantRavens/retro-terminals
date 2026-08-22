@@ -1,6 +1,6 @@
 #: cps 18
-ESPER   -   TYRELL CORP
+LAPD REP-DETECT  -  ESPER TERMINAL
 @sleep 0.5
 ENHANCE 224 TO 176
 @sleep 0.5
-More human than human.
+VOIGHT-KAMPFF UNIT READY
