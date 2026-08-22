@@ -308,6 +308,31 @@ Preview art instantly while editing: `tools/retro-banner hal`
 (`--list` for all 47, `--no-color` to check alignment). Painting is glyph-based
 — redraw the shape and the colors follow the characters.
 
+**Machines with logo-art banners.** Fifteen machines now boot with a real
+mark instead of figlet text (the rest are queued — sources collect in the
+local `reference/` stash):
+
+| Machine | Mark | Technique |
+|---|---|---|
+| atompunk | orbital atom diagram | parametric (braille orbits, paintable core/electrons) |
+| hal | HAL 9000 faceplate + glowing eye | parametric (dithered braille disc, popcount color buckets) |
+| lcars | Starfleet delta | parametric (flare curve + star knockout) |
+| wallace | three gold capsule bars | parametric |
+| severance | Lumon globe | hybrid — parametric arcs + sampled wordmark |
+| mother / muthur | Weyland-Yutani winged W | sampled, threshold keeps yellow only |
+| bladerunner | POLICE 995 spinner decal | sampled |
+| tyrell | owl seal | sampled |
+| vk | VK badge letters | sampled, painted red via enumerated glyph rule |
+| apple2 | six-stripe Apple + wordmark | sampled; stripes via line directives |
+| roci | pin-up nose art + script | 3-layer color separation, per-cell braille merge |
+| tron | beveled 1982 wordmark | 2-layer (blue faces + copper bevels) |
+| next | B/W cube | sampled, knockout letters |
+| openstep | OPENSTEP slab wordmark | sampled |
+
+Tour just those: `tools/retro-demo --only hal,roci,tron,…` — and
+`--sort alpha` re-orders any tour for lookup instead of the curated
+era/franchise narrative.
+
 **Banner-art generators.** Two tools produce banner-ready glyph art:
 
 ```bash
