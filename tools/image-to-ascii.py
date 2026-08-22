@@ -63,6 +63,13 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="emit bare glyphs with no ANSI colors (for banner files)",
     )
+    parser.add_argument(
+        "--solid-interior",
+        action="store_true",
+        help="braille mode: replace fully-lit cells whose neighbors are all "
+             "inked with a full block, so large masses render dark while "
+             "edges stay braille-smooth",
+    )
     parser.add_argument("-o", "--output", type=Path, help="write to a text file")
     return parser.parse_args()
 
@@ -188,6 +195,7 @@ def render_braille(
     tint: tuple[int, int, int] | None,
     invert: bool = False,
     plain: bool = False,
+    solid_interior: bool = False,
 ) -> str:
     cutoff = threshold * 255 / 100
     pixel_width = width * 2
@@ -211,22 +219,37 @@ def render_braille(
         luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
         return luminance >= cutoff if invert else luminance <= cutoff
 
+    cell_bits = [[0] * width for _ in range(rows)]
+    for row in range(rows):
+        for column in range(width):
+            for dx, dy, bit in dot_values:
+                if visible(pixel(column * 2 + dx, row * 4 + dy)):
+                    cell_bits[row][column] |= bit
+
+    def interior(row, column):
+        if cell_bits[row][column] != 0xFF:
+            return False
+        for rr, cc in ((row-1, column), (row+1, column), (row, column-1), (row, column+1)):
+            if not (0 <= rr < rows and 0 <= cc < width) or not cell_bits[rr][cc]:
+                return False
+        return True
+
     lines = []
     for row in range(rows):
         cells = []
         for column in range(width):
-            bits = 0
+            bits = cell_bits[row][column]
             active_colors = []
             for dx, dy, bit in dot_values:
                 color = pixel(column * 2 + dx, row * 4 + dy)
-                if visible(color):
-                    bits |= bit
+                if visible(color) :
                     active_colors.append(color)
             if not bits:
                 cells.append(" " if plain else "\x1b[0m ")
                 continue
+            glyph = "█" if solid_interior and interior(row, column) else chr(0x2800 + bits)
             if plain:
-                cells.append(chr(0x2800 + bits))
+                cells.append(glyph)
                 continue
             if tint is None:
                 count = len(active_colors)
@@ -236,7 +259,7 @@ def render_braille(
                 )
             else:
                 color = tint
-            cells.append(rgb_escape(color) + chr(0x2800 + bits))
+            cells.append(rgb_escape(color) + glyph)
         lines.append("".join(cells).rstrip() + ("" if plain else "\x1b[0m"))
     return "\n".join(lines).strip("\n") + "\n"
 
@@ -351,6 +374,7 @@ def main() -> None:
             art = render_braille(
                 colors, args.width, height, args.threshold, tint,
                 invert=args.invert, plain=args.plain,
+                solid_interior=args.solid_interior,
             )
     if args.output:
         args.output.write_text(art, encoding="utf-8")

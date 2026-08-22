@@ -3,9 +3,25 @@
 #: frame CC99CC
 #: paint FFCC00 ▐▌
 #: paint FF9900 █▟▙▜▛
+#: paint FF9900 ⠁⠃⠈⠉⠋⠏⠘⠙⠛⠹⡀⡄⡆⡟⡿⢀⢠⢰⢻⢿⣇⣧⣯⣶⣷⣸⣼⣽⣾⣿
  ▟██████████████████████████████████▙
  ██  LCARS 24-ALPHA                  █
  ▜██████████████████████████████████▛
+
+                    ⢠⣿⡄
+                   ⢠⣿⣿⣿⡄
+                  ⢀⣾⣿⣿⣿⣷⡀
+                  ⣼⣿⣿⠉⣿⣿⣧
+                 ⢰⣿⣿⡟ ⢻⣿⣿⡆
+                 ⣿⣿⣯⡄ ⢠⣽⣿⣿
+                ⣸⣿⣿⣿⣷ ⣾⣿⣿⣿⣇
+               ⢠⣿⣿⣿⣿⣿⣶⣿⣿⣿⣿⣿⡄
+               ⣼⣿⣿⣿⣿⡿⠛⢿⣿⣿⣿⣿⣧
+              ⢠⣿⣿⣿⡿⠋   ⠙⢿⣿⣿⣿⡄
+              ⣼⣿⣿⠏       ⠹⣿⣿⣧
+             ⢰⣿⡿⠃         ⠘⢿⣿⡆
+             ⣾⡟⠁           ⠈⢻⣷
+
    ▐███▌  LIBRARY COMPUTER ACCESS / RETRIEVAL
-   ▐███▌  STARFLEET COMPUTER CORE
+   ▐███▌  STARFLEET COMMAND · UNITED FEDERATION OF PLANETS
    ▐███▌  STATE YOUR INQUIRY
