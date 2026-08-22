@@ -308,6 +308,8 @@ Preview art instantly while editing: `tools/retro-banner hal`
 (`--list` for all 47, `--no-color` to check alignment). Painting is glyph-based
 — redraw the shape and the colors follow the characters.
 
+All 47 banners render on the site: [giantravens.github.io/retro-terminals/banners.html](https://giantravens.github.io/retro-terminals/banners.html) — regenerate with `tools/build-banners-page.py` after editing banner art.
+
 **Machines with logo-art banners.** Fifteen machines now boot with a real
 mark instead of figlet text (the rest are queued — sources collect in the
 local `reference/` stash):
