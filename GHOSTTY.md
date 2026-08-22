@@ -70,7 +70,7 @@ Every new window (⌘N) now wears it. Change the line + ⌘⇧, to switch.
 same config:
 
 ```
-theme = corp-mu-th-ur-6000-crt
+theme = sci-fi-mu-th-ur-6000-crt
 ```
 
 then reload with **⌘⇧,**.

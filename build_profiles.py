@@ -694,13 +694,6 @@ FICTION = [
               "0A6030","3AE070","6BFFA0","9BFF7A","18D080","6BFFC0","A8FFD0","DFFFE8"],
         blurb="RobCo Industries Termlink. Heavy phosphor + scanlines."),
 
-    machine("Severance Lumon", "Menlo", 13, ns="Sci-Fi",
-        bg="0A2440", fg="86D8E0", bold="C8F0F4", cursor="86D8E0", cursor_text="0A2440",
-        selection="244A64", selected_text="E8F8FC", link="86B8F0",
-        cursor_type=BOX, blink=False, bright_bold=True,
-        ansi=["071A2E","E06A6A","6ED0B0","E0C878","5A9AD0","B08CD0","86D8E0","A8C8D0",
-              "244A64","FF9090","9AF0D0","F0E0A0","86B8F0","D0B0F0","B0F0F8","E8F8FC"],
-        blurb="Lumon MDR: teal on navy. Please enjoy each number equally."),
 
     machine("Cyberpunk 2077", "Departure Mono", 14, ns="Sci-Fi",
         bg="0A0A0F", fg="FCEE0A", bold="FFF66B", cursor="00F0FF", cursor_text="0A0A0F",
@@ -728,14 +721,6 @@ FICTION = [
               "0A3A5A","5AB0E0","8CD8FF","FFB84C","6AB0FF","B0C8FF","C8ECFF","FFFFFF"],
         blurb="NORAD radar blue. Shall we play a game?"),
 
-    machine("Outrun", "Departure Mono", 14, ns="Sci-Fi",
-        bg="1A0A2E", fg="FF3C8C", bold="FF8CC0", cursor="2DE2E6", cursor_text="1A0A2E",
-        selection="4A2A6A", selected_text="FFE0FF", link="43D9FF",
-        cursor_type=BOX, blink=True, aa=False, bright_bold=True,
-        transparency=0.06, blur=True, blur_radius=1.5,
-        ansi=["2A1040","FF2D6B","2DE2E6","FFB03A","7A4CFF","FF3C8C","43D9FF","E0B0FF",
-              "4A2A6A","FF6BA0","6BF0F0","FFD06B","A07CFF","FF8CC0","8CF0FF","FFE0FF"],
-        blurb="Miami-sunset synthwave: hot pink + cyan on deep purple."),
 
     machine("LCARS", "Menlo", 13, ns="Sci-Fi",
         bg="000000", fg="FF9900", bold="FFCC66", cursor="FF9900", cursor_text="000000",
@@ -896,6 +881,15 @@ FTUBES = {"The Matrix", "TRON", "HAL 9000", "Fallout Pip-Boy", "Blade Runner", "
 # ===========================================================================
 
 AESTHETIC = [
+    machine("Outrun", "Departure Mono", 14, ns="Aesthetic",
+        bg="1A0A2E", fg="FF3C8C", bold="FF8CC0", cursor="2DE2E6", cursor_text="1A0A2E",
+        selection="4A2A6A", selected_text="FFE0FF", link="43D9FF",
+        cursor_type=BOX, blink=True, aa=False, bright_bold=True,
+        transparency=0.06, blur=True, blur_radius=1.5,
+        ansi=["2A1040","FF2D6B","2DE2E6","FFB03A","7A4CFF","FF3C8C","43D9FF","E0B0FF",
+              "4A2A6A","FF6BA0","6BF0F0","FFD06B","A07CFF","FF8CC0","8CF0FF","FFE0FF"],
+        blurb="Miami-sunset synthwave: hot pink + cyan on deep purple."),
+
     machine("Steampunk", "Courier", 14, ns="Aesthetic",
         bg="1E140A", fg="E8B85C", bold="FFD98A", cursor="C87A3C", cursor_text="1E140A",
         selection="4A3820", selected_text="F0E0C0", link="7ABFA8",
@@ -945,11 +939,11 @@ AESTHETIC = [
 
 
 # ===========================================================================
-# MEGACORPS  --  the Alien + Blade Runner shared universe (ns="Corp", "corp")
+# MEGACORPS  --  the Alien + Blade Runner shared universe (ns="Corpo", "corp")
 # ===========================================================================
 
-CORP = [
-    machine("Weyland-Yutani", "Glass TTY VT220", 18, ns="Corp",
+CORPO = [
+    machine("Weyland-Yutani", "Glass TTY VT220", 18, ns="Corpo",
         bg="0C0A04", fg="F5B942", bold="FFD97A", cursor="F5B942", cursor_text="0C0A04",
         selection="4A3A18", selected_text="FFF0C8", link="9BD86C",
         cursor_type=BOX, blink=True, bright_bold=True,
@@ -958,7 +952,7 @@ CORP = [
               "4A3A18","E07A44","9BD86C","FFD97A","A8B87C","D0A87C","B8E098","FFF0C8"],
         blurb="The Company: amber-gold CRT with green data accents. Building Better Worlds."),
 
-    machine("Seegson APOLLO", "Menlo", 13, ns="Corp",
+    machine("Seegson APOLLO", "Menlo", 13, ns="Corpo",
         bg="0A1018", fg="A8C8DC", bold="DCEAF4", cursor="FF6A4C", cursor_text="0A1018",
         selection="2A3A48", selected_text="DCEAF4", link="7AAAD0",
         cursor_type=BOX, blink=True, bright_bold=True,
@@ -967,7 +961,7 @@ CORP = [
               "2A3A48","FF7A6C","90D0C0","E8D090","7AAAD0","C0A0D0","A0D0E4","DCEAF4"],
         blurb="Sevastopol's budget AI: cold blue-white with a red working light."),
 
-    machine("Tyrell Corporation", "Glass TTY VT220", 18, ns="Corp",
+    machine("Tyrell Corporation", "Glass TTY VT220", 18, ns="Corpo",
         bg="120A06", fg="E8C468", bold="FFE59A", cursor="C03A2C", cursor_text="120A06",
         selection="4A3418", selected_text="FFF4D0", link="C8C070",
         cursor_type=BOX, blink=True, bright_bold=True,
@@ -976,7 +970,7 @@ CORP = [
               "4A3418","E05A44","C8C070","FFE59A","A08A5C","C88A6C","D8C888","FFF4D0"],
         blurb="Opulent candle-gold + deep red. More human than human."),
 
-    machine("Wallace Corporation", "Menlo", 13, ns="Corp",
+    machine("Wallace Corporation", "Menlo", 13, ns="Corpo",
         bg="08100F", fg="6FC8C0", bold="B8ECE6", cursor="E0A040", cursor_text="08100F",
         selection="24403C", selected_text="DCF0EC", link="8CD8CE",
         cursor_type=BOX, blink=False, bright_bold=True,
@@ -984,7 +978,7 @@ CORP = [
               "24403C","E08A7C","8CD8CE","E8C878","6CAAB4","B89ABA","A0E0D8","DCF0EC"],
         blurb="2049 brutalist cold teal with a single warm accent. A new model of perfection."),
 
-    machine("Voight-Kampff", "Glass TTY VT220", 18, ns="Corp",
+    machine("Voight-Kampff", "Glass TTY VT220", 18, ns="Corpo",
         bg="0E0704", fg="FF8A3C", bold="FFB870", cursor="FF8A3C", cursor_text="0E0704",
         selection="4A2A10", selected_text="FFE0C0", link="F0C888",
         cursor_type=BOX, blink=True, bright_bold=True,
@@ -992,6 +986,14 @@ CORP = [
         ansi=["1E0E04","E0522C","B08A4C","FF9A48","8A6A4C","C0704C","D0A060","E8C090",
               "4A2A10","FF7A44","E0B070","FFB870","B08A5C","E0906C","F0C888","FFE0C0"],
         blurb="Clinical tungsten-orange empathy-test instrument."),
+    machine("Severance Lumon", "Menlo", 13, ns="Corpo",
+        bg="0A2440", fg="86D8E0", bold="C8F0F4", cursor="86D8E0", cursor_text="0A2440",
+        selection="244A64", selected_text="E8F8FC", link="86B8F0",
+        cursor_type=BOX, blink=False, bright_bold=True,
+        ansi=["071A2E","E06A6A","6ED0B0","E0C878","5A9AD0","B08CD0","86D8E0","A8C8D0",
+              "244A64","FF9090","9AF0D0","F0E0A0","86B8F0","D0B0F0","B0F0F8","E8F8FC"],
+        blurb="Lumon MDR: teal on navy. Please enjoy each number equally."),
+
 ]
 
 
@@ -1012,7 +1014,7 @@ def _attach(profiles, tubes):
 
 
 _attach(FICTION, FTUBES)
-_attach(CORP,    CTUBES)
+_attach(CORPO,    CTUBES)
 
 
 # ---------------------------------------------------------------------------
@@ -1080,7 +1082,7 @@ def apply_local_fonts(path=LOCAL_FONTS):
     over = _parse_local_fonts(path)
     if not over:
         return []
-    known = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORP) for p in g}
+    known = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORPO) for p in g}
     applied, unknown = [], []
     for name, (family, size, ps, em) in over.items():
         p = known.get(name)
@@ -1177,7 +1179,7 @@ def attach_boot_command(profiles):
             p["Command"] = f"{BOOT_CMD} --login {key}"
 
 
-for _group in (PROFILES, FICTION, AESTHETIC, CORP):
+for _group in (PROFILES, FICTION, AESTHETIC, CORPO):
     attach_boot_command(_group)
 
 
@@ -1219,7 +1221,7 @@ def sync_gallery(repo_dir, apply=True):
     if not os.path.exists(path):
         return []
     html = open(path, encoding="utf-8").read()
-    spec = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORP) for p in g}
+    spec = {p["Name"]: p for g in (PROFILES, FICTION, AESTHETIC, CORPO) for p in g}
     drift = []
 
     def hexof(p, key):
@@ -1308,7 +1310,7 @@ def write_shell_palettes(dest_dir):
     era = _era_by_name()
     keys = []
     unmapped = []
-    for p in PROFILES + FICTION + AESTHETIC + CORP:
+    for p in PROFILES + FICTION + AESTHETIC + CORPO:
         name = p["Name"]
         key = SHELL_KEY.get(name)
         if not key:
@@ -1347,10 +1349,10 @@ def main():
     # the *session* but not the *profile*, so it stays put. NB 4 = Working Directory
     # (iTerm2's own default) — that's why an earlier 4 did nothing. --no-titles off.
     if "--no-titles" not in sys.argv:
-        for p in PROFILES + FICTION + AESTHETIC + CORP:
+        for p in PROFILES + FICTION + AESTHETIC + CORPO:
             p["Title Components"] = 32
     if "--stdout" in sys.argv:
-        print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC + CORP}, indent=2))
+        print(json.dumps({"Profiles": PROFILES + FICTION + AESTHETIC + CORPO}, indent=2))
         return
     dest_dir = os.path.expanduser(
         "~/Library/Application Support/iTerm2/DynamicProfiles"
@@ -1359,14 +1361,14 @@ def main():
     _write(dest_dir, "retro-terminals.json", PROFILES)
     _write(dest_dir, "fictional-terminals.json", FICTION)
     _write(dest_dir, "aesthetic-terminals.json", AESTHETIC)
-    _write(dest_dir, "corp-terminals.json", CORP)
+    _write(dest_dir, "corpo-terminals.json", CORPO)
     # Shell palettes live next to retro-prompts.zsh (the repo dir), which
     # sources them for `retro random`.
     write_shell_palettes(os.path.dirname(os.path.abspath(__file__)))
     sync_gallery(os.path.dirname(os.path.abspath(__file__)))
-    total = len(PROFILES) + len(FICTION) + len(AESTHETIC) + len(CORP)
+    total = len(PROFILES) + len(FICTION) + len(AESTHETIC) + len(CORPO)
     print(f"\nTotal: {total} profiles in 4 groups "
-          f"(retro / sci-fi / aesthetic / corp).")
+          f"(retro / sci-fi / aesthetic / corpo).")
 
 
 if __name__ == "__main__":

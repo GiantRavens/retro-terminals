@@ -9,7 +9,7 @@ your terminal *and editor* can wear. On Ghostty the glass actually curves.
 **47 retro terminal themes** — real historic machines (`retro`: VT220 green
 phosphor, C64, Amiga…), fictional computers (`sci-fi`: HAL, TRON, Pip-Boy…),
 aesthetic movements (`aesthetic`: vaporwave, steampunk…), and the Alien/Blade
-Runner megacorps (`corp`) — for **iTerm2 or Ghostty**, driven from one
+Runner megacorps plus Lumon (`corpo`) — for **iTerm2 or Ghostty**, driven from one
 declarative palette spec:
 
 - **iTerm2** (`build_profiles.py`) — the daily driver. 47 Dynamic Profiles,
@@ -99,7 +99,7 @@ python3 build_profiles.py
 It writes four JSON files into `~/Library/Application Support/iTerm2/DynamicProfiles/`,
 which iTerm2 **watches and hot-loads live** — no restart. Re-run it any time you
 edit a palette; open tabs restyle within a second. Then in iTerm2 press **⌘O** and
-filter by tag (`retro` / `sci-fi` / `aesthetic` / `corp`).
+filter by tag (`retro` / `sci-fi` / `aesthetic` / `corpo`).
 
 ## What's installed — `retro` (real machines)
 
@@ -138,11 +138,9 @@ The screens that raised us. *Shall we play a game?*
 | Neuromancer | Ono-Sendai cyberspace: cyan + magenta neon |
 | HAL 9000 | Red monochrome, ominous |
 | Fallout Pip-Boy | RobCo Termlink green, heavy scanlines |
-| Severance Lumon | Teal on navy, corporate-creepy |
 | Cyberpunk 2077 | Night City yellow + cyan |
 | Blade Runner | Esper amber + teal, smoky |
 | WOPR | NORAD radar blue — *shall we play a game?* |
-| Outrun | Synthwave hot-pink + cyan on deep purple |
 | LCARS | Star Trek panel palette — orange / gold / mauve / blue on black |
 | Rocinante | *The Expanse* — tactical navy, electric-blue wireframe, MISFIRE red |
 | MCRN | Martian Congressional Republic Navy — hot red and burnt orange on black |
@@ -161,11 +159,13 @@ For when you want a *vibe*, not a specific machine — pick your -punk.
 | Solarpunk | Warm cream, leaf-green + gold (light) |
 | Dieselpunk | Machine-age teal, rust, cream |
 | Vaporwave | Pastel pink / cyan / lilac on purple |
+| Outrun | Synthwave hot-pink + cyan on deep purple |
 | Atompunk | Mid-century cream, atomic-coral + turquoise (light) |
 
-## `corp` (Alien + Blade Runner megacorps)
+## `corpo` (fictional megacorps)
 
-The *corporations* — the ships and their computers live in `sci-fi`.
+The *corporations* — Alien + Blade Runner's shared universe plus
+Severance's Lumon. The ships and their computers live in `sci-fi`.
 The two franchises share a universe (Weyland → Tyrell), so they share a pack.
 Spread across distinct hues so they don't all read as "amber sci-fi":
 
@@ -176,6 +176,7 @@ Spread across distinct hues so they don't all read as "amber sci-fi":
 | Tyrell Corporation | Opulent candle-gold + deep red (*more human than human*) |
 | Wallace Corporation | 2049 brutalist cold teal with one warm accent |
 | Voight-Kampff | Clinical tungsten-orange empathy-test instrument |
+| Severance Lumon | Teal on navy, corporate-creepy |
 
 All three notional packs get boot banners too, and matching `retro` prompts
 (`retro matrix`, `retro hal`, `retro weyland`, `retro tyrell`, `retro vk`, …).

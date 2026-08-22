@@ -236,7 +236,7 @@ def parse_args() -> argparse.Namespace:
         description="Open each retro profile in a disposable real terminal window."
     )
     parser.add_argument("--terminal", choices=("auto", "iterm2", "ghostty"), default="auto")
-    parser.add_argument("--group", choices=("all", "retro", "sci-fi", "aesthetic", "corp"), default="all")
+    parser.add_argument("--group", choices=("all", "retro", "sci-fi", "aesthetic", "corpo"), default="all")
     parser.add_argument("--delay", type=float, default=0, metavar="SECONDS", help="advance automatically")
     parser.add_argument("--limit", type=int, metavar="N", help="show only the first N selected profiles")
     parser.add_argument("--shuffle", action="store_true")

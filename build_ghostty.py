@@ -52,7 +52,7 @@ GROUPS = [
     (bp.PROFILES,  "retro"),
     (bp.FICTION,   "sci-fi"),
     (bp.AESTHETIC, "aesthetic"),
-    (bp.CORP,      "corp"),
+    (bp.CORPO,     "corpo"),
 ]
 
 # build_profiles: UNDERLINE, VBAR, BOX = 0, 1, 2
