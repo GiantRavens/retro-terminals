@@ -1,11 +1,6 @@
 # The machines
 
-All 47 palettes, grouped into the four packs. Boot banners for every one
-render on the site: <https://giantravens.github.io/retro-terminals/banners.html>
-
 ## `retro` (real machines)
-
-The real iron — teletype paper, phosphor tubes, and that unmistakable C64 blue.
 
 | Profile | Look | Font |
 |---|---|---|
@@ -27,11 +22,9 @@ The real iron — teletype paper, phosphor tubes, and that unmistakable C64 blue
 | Plan 9 acme | Bell Labs pale-yellow paper (`#FFFFEA`) | Menlo |
 
 \* ZX Spectrum and Atari fall back to Departure Mono — their authentic fonts aren't
-freely hosted. The palette does the identifying work.
+freely hosted. 
 
 ## `sci-fi` (fictional computers)
-
-The screens that raised us. *Shall we play a game?*
 
 | Profile | Look |
 |---|---|
@@ -53,8 +46,6 @@ The screens that raised us. *Shall we play a game?*
 
 ## `aesthetic` (genre movements)
 
-For when you want a *vibe*, not a specific machine — pick your -punk.
-
 | Profile | Look |
 |---|---|
 | Steampunk | Brass, copper, verdigris on aged mahogany |
@@ -66,11 +57,6 @@ For when you want a *vibe*, not a specific machine — pick your -punk.
 
 ## `corpo` (fictional megacorps)
 
-The *corporations* — Alien + Blade Runner's shared universe plus
-Severance's Lumon. The ships and their computers live in `sci-fi`.
-The two franchises share a universe (Weyland → Tyrell), so they share a pack.
-Spread across distinct hues so they don't all read as "amber sci-fi":
-
 | Profile | Look |
 |---|---|
 | Weyland-Yutani | The Company — amber-gold CRT with green data accents |
@@ -80,33 +66,3 @@ Spread across distinct hues so they don't all read as "amber sci-fi":
 | Voight-Kampff | Clinical tungsten-orange empathy-test instrument |
 | Severance Lumon | Teal on navy, corporate-creepy |
 
-All three notional packs get boot banners too, and matching `retro` prompts
-(`retro matrix`, `retro hal`, `retro weyland`, `retro tyrell`, `retro vk`, …).
-
-
-All 47 banners render on the site: [giantravens.github.io/retro-terminals/banners.html](https://giantravens.github.io/retro-terminals/banners.html) — regenerate with `tools/build-banners-page.py` after editing banner art.
-
-**Machines with logo-art banners.** Fifteen machines now boot with a real
-mark instead of figlet text (the rest are queued — sources collect in the
-local `reference/` stash):
-
-| Machine | Mark | Technique |
-|---|---|---|
-| atompunk | orbital atom diagram | parametric (braille orbits, paintable core/electrons) |
-| hal | HAL 9000 faceplate + glowing eye | parametric (dithered braille disc, popcount color buckets) |
-| lcars | Starfleet delta | parametric (flare curve + star knockout) |
-| wallace | three gold capsule bars | parametric |
-| severance | Lumon globe | hybrid — parametric arcs + sampled wordmark |
-| mother / muthur | Weyland-Yutani winged W | sampled, threshold keeps yellow only |
-| bladerunner | POLICE 995 spinner decal | sampled |
-| tyrell | owl seal | sampled |
-| vk | VK badge letters | sampled, painted red via enumerated glyph rule |
-| apple2 | six-stripe Apple + wordmark | sampled; stripes via line directives |
-| roci | pin-up nose art + script | 3-layer color separation, per-cell braille merge |
-| tron | beveled 1982 wordmark | 2-layer (blue faces + copper bevels) |
-| next | B/W cube | sampled, knockout letters |
-| openstep | OPENSTEP slab wordmark | sampled |
-
-Tour just those: `tools/retro-demo --only hal,roci,tron,…` — and
-`--sort alpha` re-orders any tour for lookup instead of the curated
-era/franchise narrative.

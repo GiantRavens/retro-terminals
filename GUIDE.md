@@ -16,8 +16,6 @@ tools/retro-demo --group retro --limit 3 # a short sampler
 tools/retro-demo --manifest              # inspect the launch plan only
 ```
 
-Or wear one at random, in a **new** window so it brings its own font:
-
 ```bash
 tools/retro-random                     # any of the 47
 tools/retro-random --group sci-fi      # one pack
@@ -25,7 +23,7 @@ tools/retro-random --terminal ghostty  # Ghostty instead of iTerm2
 retro launch [group]                   # the same thing from the shell
 ```
 
-`retro random` is a different thing: it repaints the window you are already in
+`retro random` repaints the window you are already in
 (palette, prompt, banner) and cannot carry a font, because the cell grid is
 fixed when a window is created and no escape sequence changes it. `retro
 launch` / `retro-random` create the window instead, so the machine arrives
@@ -70,19 +68,10 @@ filter by tag (`retro` / `sci-fi` / `aesthetic` / `corpo`).
 
 ## Visual gallery & CRT playground
 
-Hosted on GitHub Pages (public, shareable):
-
 - **Gallery** — every profile rendered in its real font:
   <https://giantravens.github.io/retro-terminals/>
 - **CRT playground** — a WebGL curved-glass shader (the effect iTerm can't do
   natively): <https://giantravens.github.io/retro-terminals/crt-playground.html>
-
-The gallery links to the playground and explains how the five parts (profiles,
-banners, prompts, bezel, playground) fit together. The four OFL/public-domain
-fonts (Terminus, IBM 3270, Departure Mono, Bedstead) are **embedded as base64**
-(`tools/embed-fonts.py`), so those cards render for any visitor. Glass TTY VT220,
-C64 Pro Mono and the Apple/Kreative faces aren't bundled (redistribution terms) —
-those cards fall back to monospace unless you `./fonts/install-fonts.sh` locally.
 
 ## How it works
 
@@ -132,30 +121,6 @@ The open tabs restyle within a second. Useful knobs per machine:
   any TUI). On by default; the builder sizes `SymbolsNFM` to the machine font's
   measured cell width (`FONT_CELL_EM`) so icons stay inside one cell
 
-### Want "pure" vs "daily" variants?
-
-Duplicate a `machine(...)` block, rename it (e.g. `"Commodore 64 (daily)"`), and
-raise `min_contrast` / drop `transparency` + `blur`. The distinct name gives it
-its own GUID automatically.
-
-## The boot experience
-
-Every profile **boots like the machine it dresses up as**. Opening a retro
-profile runs `tools/retro-boot` *instead of* your shell (the profile's
-`Command`): it silently types out the machine's authentic boot chatter,
-reveals a big ASCII banner inspired by the source material, prints a
-gallery spec line, lets the reveal land for a beat — and only then `exec`s your
-login shell (with `$RETRO_MACHINE` set so `retro-prompts.zsh` knows which boot
-to present). The art stays on screen; your Starship prompt lands below it.
-Set `RETRO_PROMPT_ON_START=1` to opt into the machine's period prompt instead.
-Prefer to be asked?
-`RETRO_BOOT_WAIT=1` holds on a blinking `▸ PRESS ENTER ▸` gate instead.
-
-> Why not `Initial Text`? That old mechanism *types a command into your shell*,
-> so a new tab visibly drew a prompt, echoed the command, cleared, printed, and
-> re-drew — four repaints of flicker. Running the presentation **before the
-> shell exists** paints once, deliberately.
-
 Everything about a machine's boot is plain-text data you can edit:
 
 | File | What it is |
@@ -166,35 +131,6 @@ Everything about a machine's boot is plain-text data you can edit:
 | `~/.config/retro-terminals/boot/<key>.boot` | **your chatter override** |
 | `~/.config/retro-terminals/boot/<key>.sh` | full takeover: your script replaces the whole presentation |
 | `~/.config/retro-terminals/fonts.local` | **your font override** — repoint any machine at a face you own |
-
-**Fonts you own.** The shipped spec only names fonts anyone can install, because
-a missing font doesn't fail — the terminal quietly substitutes its default and
-the profile renders as a lie. But a font you happen to own can be the right face
-for a machine and still be unshippable. Put those in `fonts.local`, one line per
-machine, and both builders pick them up:
-
-```
-# machine    = family, size [, postscript-name [, advance/upem]]
-Nostromo      = Wudoo Mono, 18, WudooMono-Regular, 0.53
-```
-
-The PostScript name is optional (iTerm2 resolves some faces only by it); so is
-advance/upem, which keeps the Nerd Font symbol fallback sized to the cell. A
-machine name that matches nothing is reported, not ignored.
-
-Your overrides reach your own iTerm2 and Ghostty configs — and must not reach
-anything the repo publishes. `ghostty-studio.html` is generated from the same
-spec, so a plain rebuild bakes your private fonts into a public page. Build
-published artifacts with the opt-out:
-
-```bash
-RETRO_NO_LOCAL_FONTS=1 python3 build_ghostty.py --studio
-```
-
-Preview art instantly while editing: `tools/retro-banner hal`
-(`--list` for all 47, `--no-color` to check alignment). Painting is glyph-based
-— redraw the shape and the colors follow the characters.
-
 
 **Banner-art generators.** Two tools produce banner-ready glyph art:
 
