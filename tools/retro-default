@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Make a random machine the DEFAULT profile — every new window wears it.
+
+`tools/retro-random` opens one extra window. This instead rewrites what the
+terminal considers its default, so plain ⌘N (and every window at launch)
+arrives as the chosen machine — font, shader, and all — until the next roll.
+
+    tools/retro-default                     # roll: Ghostty + iTerm2, any pack
+    tools/retro-default --group corpo       # one pack only
+    tools/retro-default --terminal ghostty  # touch only one terminal
+    tools/retro-default --print             # show the roll, change nothing
+    tools/retro-default --install-login     # roll again at every login
+    tools/retro-default --uninstall-login
+
+How each terminal is told:
+
+  Ghostty   ~/.config/ghostty/config is the default profile. This writes a
+            fenced block into it:
+                # >>> retro-default >>>
+                config-file = retro/<slug>
+                # <<< retro-default <<<
+            Anything outside the fence is yours and is preserved. A running
+            Ghostty picks it up on ⌘⇧, or at next launch.
+
+  iTerm2    the "Default Bookmark Guid" preference. GUIDs are uuid5 of the
+            profile name (build_profiles.guid), so no lookup table is needed.
+            iTerm2 reads prefs at launch, so a running iTerm2 keeps its old
+            default until restarted; the LaunchAgent runs before it starts.
+
+Login hook: --install-login writes a LaunchAgent (RunAtLoad) that runs this
+script, so every login/reboot rolls a fresh default. The agent shells out to
+this file in place, so a repo move or delete means --uninstall-login first.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import plistlib
+import random
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+import build_profiles as bp  # noqa: E402
+from build_ghostty import GROUPS, kebab  # noqa: E402
+
+HOME = Path.home()
+GHOSTTY_CONFIG = HOME / ".config/ghostty/config"
+GHOSTTY_RETRO = HOME / ".config/ghostty/retro"
+FENCE_OPEN = "# >>> retro-default >>>"
+FENCE_CLOSE = "# <<< retro-default <<<"
+AGENT_LABEL = "com.giantravens.retro-default"
+AGENT_PLIST = HOME / "Library/LaunchAgents" / f"{AGENT_LABEL}.plist"
+ITERM_DOMAIN = "com.googlecode.iterm2"
+
+
+# ---------------------------------------------------------------- choosing
+
+def pool(group: str) -> list[dict]:
+    out = []
+    for profiles, tag in GROUPS:
+        if group in ("all", tag):
+            out.extend(profiles)
+    if not out:
+        sys.exit(f"retro-default: no profiles in group {group!r}")
+    return out
+
+
+def slug_for(profile: dict) -> str:
+    for profiles, tag in GROUPS:
+        if profile in profiles:
+            return f"{tag}-{kebab(profile['Name'])}"
+    sys.exit(f"retro-default: {profile['Name']} is in no group")
+
+
+def current_ghostty_slug(text: str) -> str | None:
+    m = re.search(rf"{re.escape(FENCE_OPEN)}\n(.*?){re.escape(FENCE_CLOSE)}", text, re.S)
+    if not m:
+        return None
+    m2 = re.search(r"config-file\s*=\s*retro/(\S+)", m.group(1))
+    return m2.group(1) if m2 else None
+
+
+def pick(group: str, avoid_slug: str | None = None) -> dict:
+    """Random member of the pool; never the machine already worn (if >1)."""
+    candidates = pool(group)
+    if avoid_slug and len(candidates) > 1:
+        candidates = [p for p in candidates if slug_for(p) != avoid_slug]
+    return random.choice(candidates)
+
+
+# ---------------------------------------------------------------- ghostty
+
+def splice_ghostty(text: str, slug: str) -> str:
+    """Return `text` with the fenced block set to `slug`, fence added if absent."""
+    block = f"{FENCE_OPEN}\n# random machine, rolled by tools/retro-default\nconfig-file = retro/{slug}\n{FENCE_CLOSE}\n"
+    pattern = rf"{re.escape(FENCE_OPEN)}\n.*?{re.escape(FENCE_CLOSE)}\n?"
+    if re.search(pattern, text, re.S):
+        return re.sub(pattern, lambda _: block, text, count=1, flags=re.S)
+    if text and not text.endswith("\n"):
+        text += "\n"
+    return text + ("\n" if text else "") + block
+
+
+def set_ghostty(slug: str) -> None:
+    cfg = GHOSTTY_RETRO / slug
+    if not cfg.exists():
+        sys.exit(f"retro-default: no Ghostty config {cfg} — run build_ghostty.py")
+    GHOSTTY_CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    old = GHOSTTY_CONFIG.read_text() if GHOSTTY_CONFIG.exists() else ""
+    GHOSTTY_CONFIG.write_text(splice_ghostty(old, slug))
+    # No boot stash needed: the machine's config carries `env = RETRO_MACHINE=`,
+    # which is what retro-prompts.zsh keys the banner off.
+
+
+# ---------------------------------------------------------------- iterm2
+
+def set_iterm2(profile: dict) -> None:
+    if sys.platform != "darwin":
+        return
+    guid = bp.guid(profile["Name"])
+    r = subprocess.run(["defaults", "write", ITERM_DOMAIN, "Default Bookmark Guid", guid],
+                       text=True, capture_output=True)
+    if r.returncode != 0:
+        sys.exit(f"retro-default: defaults write failed\n  {r.stderr.strip()}")
+
+
+# ---------------------------------------------------------------- login agent
+
+def agent_plist(args: list[str]) -> dict:
+    return {
+        "Label": AGENT_LABEL,
+        "ProgramArguments": [sys.executable, str(Path(__file__).resolve()), *args],
+        "RunAtLoad": True,
+        "StandardOutPath": str(HOME / "Library/Logs/retro-default.log"),
+        "StandardErrorPath": str(HOME / "Library/Logs/retro-default.log"),
+    }
+
+
+def install_login(args: list[str]) -> None:
+    if sys.platform != "darwin":
+        sys.exit("retro-default: --install-login is macOS/launchd only")
+    AGENT_PLIST.parent.mkdir(parents=True, exist_ok=True)
+    with open(AGENT_PLIST, "wb") as f:
+        plistlib.dump(agent_plist(args), f)
+    uid = os.getuid()
+    subprocess.run(["launchctl", "bootout", f"gui/{uid}", str(AGENT_PLIST)],
+                   capture_output=True)
+    r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(AGENT_PLIST)],
+                       text=True, capture_output=True)
+    if r.returncode != 0:
+        sys.exit(f"retro-default: launchctl bootstrap failed\n  {r.stderr.strip()}")
+    print(f"installed {AGENT_PLIST}  (RunAtLoad; rolled once now)")
+
+
+def uninstall_login() -> None:
+    if AGENT_PLIST.exists():
+        subprocess.run(["launchctl", "bootout", f"gui/{os.getuid()}", str(AGENT_PLIST)],
+                       capture_output=True)
+        AGENT_PLIST.unlink()
+        print(f"removed {AGENT_PLIST}")
+    else:
+        print("no login agent installed")
+
+
+# ---------------------------------------------------------------- main
+
+def main() -> None:
+    ap = argparse.ArgumentParser(
+        description="Set a random retro machine as the default terminal profile.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Fence in ~/.config/ghostty/config is owned by this tool; "
+               "everything outside it is left alone.")
+    ap.add_argument("--group", default="all",
+                    choices=["all"] + [t for _, t in GROUPS])
+    ap.add_argument("--terminal", default="both",
+                    choices=["both", "ghostty", "iterm2"])
+    ap.add_argument("--print", dest="only_print", action="store_true",
+                    help="print the roll and exit without changing anything")
+    ap.add_argument("--install-login", action="store_true",
+                    help="install a LaunchAgent that re-rolls at every login "
+                         "(with the same --group/--terminal)")
+    ap.add_argument("--uninstall-login", action="store_true")
+    a = ap.parse_args()
+
+    if a.uninstall_login:
+        uninstall_login()
+        return
+    if a.install_login:
+        args = []
+        if a.group != "all":
+            args += ["--group", a.group]
+        if a.terminal != "both":
+            args += ["--terminal", a.terminal]
+        install_login(args)
+        return
+
+    worn = current_ghostty_slug(GHOSTTY_CONFIG.read_text()) if GHOSTTY_CONFIG.exists() else None
+    p = pick(a.group, avoid_slug=worn)
+    slug = slug_for(p)
+    print(f"{p['Name']}  ·  {p['Normal Font']}  ·  {slug}")
+    if a.only_print:
+        return
+    if a.terminal in ("both", "ghostty"):
+        set_ghostty(slug)
+    if a.terminal in ("both", "iterm2"):
+        set_iterm2(p)
+
+
+if __name__ == "__main__":
+    main()

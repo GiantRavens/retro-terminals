@@ -49,7 +49,7 @@ _bspec.loader.exec_module(rb)
 MAX_COLS = 79        # column 80 wraps; see docstring
 MAX_ROWS = 24        # banner alone, inside a 25-row window
 
-ALL = bp.PROFILES + bp.FICTION + bp.AESTHETIC + bp.CORP
+ALL = bp.PROFILES + bp.FICTION + bp.AESTHETIC + bp.CORPO
 
 
 def render(key):

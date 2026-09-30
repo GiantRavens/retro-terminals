@@ -23,6 +23,23 @@ tools/retro-random --terminal ghostty  # Ghostty instead of iTerm2
 retro launch [group]                   # the same thing from the shell
 ```
 
+**Random default, not random window.** `tools/retro-default` rolls a machine
+and makes it the terminal's *default* profile, so plain ⌘N and every window at
+launch wears it, until the next roll:
+
+```bash
+tools/retro-default                     # roll now: Ghostty + iTerm2
+tools/retro-default --group corpo       # one pack; --terminal ghostty for one app
+tools/retro-default --print             # see the roll, change nothing
+tools/retro-default --install-login     # LaunchAgent: re-roll at every login/reboot
+tools/retro-default --uninstall-login
+```
+
+Ghostty gets a fenced `config-file = retro/<slug>` block in
+`~/.config/ghostty/config` (your other lines survive; ⌘⇧, to reload). iTerm2
+gets its `Default Bookmark Guid` pref, read at next launch. It never re-rolls
+the machine already worn.
+
 `retro random` repaints the window you are already in
 (palette, prompt, banner) and cannot carry a font, because the cell grid is
 fixed when a window is created and no escape sequence changes it. `retro

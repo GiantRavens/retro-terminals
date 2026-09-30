@@ -76,7 +76,7 @@ def _families():
 
 def _machine_fonts():
     profiles = (build_profiles.PROFILES + build_profiles.FICTION
-                + build_profiles.AESTHETIC + build_profiles.CORP)
+                + build_profiles.AESTHETIC + build_profiles.CORPO)
     return sorted({p["Ghostty Font Family"] for p in profiles})
 
 
@@ -136,6 +136,55 @@ class FontRegistryTests(unittest.TestCase):
             "FONT_CELL_EM sizes the Nerd Font symbol fallback; these disagree "
             f"with the font's real advance/upem (family, declared, actual): {wrong}",
         )
+
+
+def _all_profiles():
+    return (build_profiles.PROFILES + build_profiles.FICTION
+            + build_profiles.AESTHETIC + build_profiles.CORPO)
+
+
+class ItermFontStringTests(unittest.TestCase):
+    """iTerm2 reads a bare number in "<name> <size>" as the size: "IBM 3270 16"
+    opened at 3270pt, a one-cell window covering the display. Needs no fonts
+    installed -- it is a property of the generated strings."""
+
+    def test_no_profile_font_name_contains_a_bare_number(self):
+        bad = []
+        for p in _all_profiles():
+            for key in ("Normal Font", "Non Ascii Font"):
+                name = p[key].rsplit(" ", 1)[0]
+                if any(w.replace(".", "", 1).isdigit() for w in name.split()):
+                    bad.append((p["Name"], key, p[key]))
+        self.assertEqual([], bad, "add these families to ITERM_POSTSCRIPT")
+
+    def test_guard_rejects_numeric_family_names(self):
+        with self.assertRaises(ValueError):
+            build_profiles._iterm_font_string("IBM 3270", 16)
+        self.assertEqual("3270-Regular 16",
+                         build_profiles._iterm_font_string("3270-Regular", 16))
+
+
+@unittest.skipIf(TTFont is None, "fonttools not available")
+class ItermPostscriptTests(unittest.TestCase):
+    def test_postscript_names_exist(self):
+        """A misspelt PostScript name does not error in iTerm2 -- it falls back
+        to the system monospace face, silently. So check each one is real."""
+        installed = set()
+        for d in FONT_DIRS:
+            if not d.is_dir():
+                continue
+            for p in d.iterdir():
+                if p.suffix.lower() not in (".ttf", ".otf", ".ttc"):
+                    continue
+                try:
+                    f = TTFont(p, fontNumber=0, lazy=True)
+                    installed.add(f["name"].getDebugName(6))
+                    f.close()
+                except Exception:
+                    continue
+        missing = [(fam, ps) for fam, ps in build_profiles.ITERM_POSTSCRIPT.items()
+                   if ps not in installed]
+        self.assertEqual([], missing, "family -> PostScript name not installed")
 
 
 if __name__ == "__main__":

@@ -106,6 +106,31 @@ FONT_LEADING = {
 # integration/nvim/lua/retro/icons.lua.
 SYMBOLS_FONT = "SymbolsNFM"
 
+# iTerm2 stores a font as ONE string, "<name> <size>", and its parser takes a
+# bare number inside a family name as the size. "IBM 3270 16" opened WOPR,
+# MS-DOS Editor and Dieselpunk at a 3270-point face: a one-cell grid stretched
+# across the whole display (measured 2026-09-30: cols=1 rows=1). A PostScript
+# name has no spaces, so there is nothing to misread. Families listed here get
+# their PostScript name in the iTerm2 string by default; an explicit
+# `iterm_font` still wins. _iterm_font_string() refuses any name that would
+# still carry a numeric word, so a new font of this shape fails the build
+# instead of the window.
+ITERM_POSTSCRIPT = {
+    "IBM 3270": "3270-Regular",
+    "Print Char 21": "PrintChar21",
+}
+
+
+def _iterm_font_string(name, size):
+    """-> "<name> <size>" for iTerm2, or raise if iTerm2 would misparse it."""
+    numeric = [w for w in name.split() if w.replace(".", "", 1).isdigit()]
+    if numeric:
+        raise ValueError(
+            f"iTerm2 font name {name!r} contains the bare number {numeric[0]!r}, "
+            f"which iTerm2 reads as the point size. Add the PostScript name to "
+            f"ITERM_POSTSCRIPT (or pass iterm_font=).")
+    return f"{name} {size}"
+
 # Scrollback cap, applied to every generated profile. See the "--- terminal ---"
 # block in machine() for why this is set explicitly rather than inherited from
 # the Default profile.
@@ -213,7 +238,8 @@ def machine(
     # silently drop back to Regular, so it needs the style named separately in
     # `font_style`, or the same profile renders at two different weights
     # depending on which terminal opened it.
-    fontstr = f"{iterm_font or font} {size}"
+    fontstr = _iterm_font_string(
+        iterm_font or ITERM_POSTSCRIPT.get(font, font), size)
 
     p = {
         # Bare machine name. The pack used to prefix this ("Retro · Paper
@@ -1089,9 +1115,15 @@ def apply_local_fonts(path=LOCAL_FONTS):
         if p is None:
             unknown.append(name)
             continue
+        try:
+            fontstr = _iterm_font_string(
+                ps or ITERM_POSTSCRIPT.get(family, family), size)
+        except ValueError as e:
+            print(f"  fonts.local: {name} -- skipped: {e}", file=sys.stderr)
+            continue
         if em:
             FONT_CELL_EM[family] = em      # keeps symbol fallback + demo sizing true
-        p["Normal Font"] = f"{ps or family} {size}"
+        p["Normal Font"] = fontstr
         p["Ghostty Font Family"] = family
         # A local face has its own weights; never carry the shipped style over.
         p.pop("Ghostty Font Style", None)

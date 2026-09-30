@@ -33,6 +33,8 @@ Palette swatches, fonts, and which machines boot with logo art:
 python3 build_ghostty.py     # Ghostty: themes, configs, and the real CRT shader
 tools/retro-demo             # tour them as real terminal windows
 tools/retro-random           # or just wear one at random
+tools/retro-default          # make a random one the DEFAULT profile (⌘N)
+tools/retro-default --install-login   # ...and re-roll at every login
 ```
 
 Then in iTerm2 press **⌘O** and filter by pack (`retro` / `sci-fi` /

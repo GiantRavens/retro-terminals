@@ -25,7 +25,7 @@ def profile_named(name):
         build_profiles.PROFILES
         + build_profiles.FICTION
         + build_profiles.AESTHETIC
-        + build_profiles.CORP
+        + build_profiles.CORPO
     )
     for profile in profiles:
         if profile["Name"] == name:
