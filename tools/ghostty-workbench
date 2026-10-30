@@ -1,0 +1,801 @@
+#!/usr/bin/env python3
+"""Ghostty appearance picker and remote tmux launcher. Python standard library only."""
+from __future__ import annotations
+
+import argparse
+import contextlib
+import curses
+import fcntl
+import json
+import os
+from pathlib import Path
+import random
+import re
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import time
+
+ROOT = Path(__file__).resolve().parent.parent
+COLORS = {'background', 'foreground', 'cursor-color', 'cursor-text',
+          'selection-background', 'selection-foreground', 'bold-color', 'palette'}
+APPEARANCE = COLORS | {'font-family', 'font-size', 'cursor-style', 'cursor-style-blink',
+    'window-padding-x', 'window-padding-y', 'window-padding-color', 'window-padding-balance',
+    'title', 'custom-shader', 'custom-shader-animation'}
+BEGIN, END = '# >>> ghostty-workbench >>>', '# <<< ghostty-workbench <<<'
+
+
+class WorkbenchError(Exception):
+    pass
+
+
+def run(argv, **kwargs):
+    p = subprocess.run(argv, text=True, capture_output=True, timeout=kwargs.pop('timeout', 20), **kwargs)
+    if p.returncode:
+        raise WorkbenchError(f'{Path(argv[0]).name} exited {p.returncode}: {(p.stderr or p.stdout).strip()}')
+    return p.stdout
+
+
+def ghostty():
+    path = shutil.which('ghostty') or '/Applications/Ghostty.app/Contents/MacOS/ghostty'
+    if not Path(path).is_file():
+        raise WorkbenchError('Ghostty not found.')
+    return path
+
+
+def pairs(text):
+    for line in text.splitlines():
+        if line.strip() and not line.lstrip().startswith('#') and '=' in line:
+            key, value = line.split('=', 1)
+            yield key.strip(), value.strip()
+
+
+def quote(value):
+    # Ghostty and AppleScript both accept these double-quoted strings.
+    return '"' + str(value).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r') + '"'
+
+
+def atomic(path, text):
+    path = path.resolve()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, name = tempfile.mkstemp(prefix='.' + path.name, dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w') as stream:
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if path.exists():
+            os.chmod(name, path.stat().st_mode & 0o777)
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def text_or_none(path):
+    return path.read_text() if path.exists() else None
+
+
+def splice(text, include):
+    # Includes are evaluated after their parent; this must be the LAST include.
+    pattern = re.escape(BEGIN) + r'\n.*?' + re.escape(END) + r'\n?'
+    text = re.sub(pattern, '', text, flags=re.S).rstrip('\n')
+    return text + '\n\n' + BEGIN + '\nconfig-file = ' + quote(include) + '\n' + END + '\n'
+
+
+class Store:
+    def __init__(self, directory=None):
+        self.directory = Path(directory or os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
+        if directory is None:
+            self.directory /= 'ghostty'
+        self.directory = self.directory.expanduser().resolve()
+        # Prefer the file that is actually present; preserve legacy config installations.
+        self.config = self.directory / ('config.ghostty' if (self.directory / 'config.ghostty').exists() else 'config')
+        self.managed = self.directory / 'workbench-appearance.conf'
+        self.journal = self.directory / '.workbench-preview.json'
+        self.selection = self.directory / '.workbench-selection.json'
+
+    def event(self, phase, **values):
+        self.directory.mkdir(parents=True, exist_ok=True)
+        with (self.directory / 'workbench-events.jsonl').open('a') as stream:
+            stream.write(json.dumps(dict(time=time.time(), phase=phase, **values)) + '\n')
+
+    @contextlib.contextmanager
+    def lock(self):
+        self.directory.mkdir(parents=True, exist_ok=True)
+        with (self.directory / '.workbench.lock').open('a') as stream:
+            try:
+                fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise WorkbenchError('Another picker/apply operation is running.')
+            yield
+
+    def install(self):
+        old = text_or_none(self.config) or ''
+        new = splice(old, self.managed)
+        if old != new:
+            backup = self.config.with_name(self.config.name + '.before-workbench')
+            if not backup.exists():
+                atomic(backup, old)
+            if not self.managed.exists():
+                atomic(self.managed, '# Appearance selected by ghostty-workbench.\n')
+            atomic(self.config, new)
+
+    def begin(self, files=()):
+        if self.journal.exists():
+            raise WorkbenchError('Interrupted preview found. Run ghostty-workbench recover first.')
+        original = text_or_none(self.managed)
+        resources = {str(p): dict(original=text_or_none(p), expected=text_or_none(p)) for p in files}
+        atomic(self.journal, json.dumps({'original': original, 'expected': original, 'files': resources}))
+        self.event('preview.start')
+
+    def write_resource(self, path, content):
+        data = json.loads(self.journal.read_text())
+        entry = data['files'][str(path)]
+        if text_or_none(path) != entry['expected']:
+            raise WorkbenchError(f'{path} edited externally; refusing to overwrite it.')
+        entry['previous'], entry['expected'] = entry['expected'], content
+        atomic(self.journal, json.dumps(data))
+        atomic(path, content)
+
+    def write_preview(self, content):
+        data = json.loads(self.journal.read_text())
+        if text_or_none(self.managed) != data['expected']:
+            raise WorkbenchError('Appearance file was edited externally; refusing to overwrite it.')
+        # Write ahead: recovery accepts either the old or intended contents.
+        data['previous'] = data['expected']
+        data['expected'] = content
+        atomic(self.journal, json.dumps(data))
+        atomic(self.managed, content)
+
+    def restore(self):
+        if not self.journal.exists():
+            return False
+        data = json.loads(self.journal.read_text())
+        current = text_or_none(self.managed)
+        if current not in (data['expected'], data.get('previous'), data['original']):
+            raise WorkbenchError(f'Appearance edited externally. Recovery snapshot kept at {self.journal}.')
+        resources = data.get('files', {})
+        for name, entry in resources.items():
+            if text_or_none(Path(name)) not in (entry['expected'], entry.get('previous'), entry['original']):
+                raise WorkbenchError(f'{name} edited externally. Recovery snapshot kept at {self.journal}.')
+        for name, entry in resources.items():
+            if entry['original'] is None:
+                Path(name).unlink(missing_ok=True)
+            else:
+                atomic(Path(name), entry['original'])
+        if data['original'] is None:
+            self.managed.unlink(missing_ok=True)
+        else:
+            atomic(self.managed, data['original'])
+        self.journal.unlink()
+        self.event('restore.finish')
+        return True
+
+    def commit(self, choice):
+        data = json.loads(self.journal.read_text())
+        if text_or_none(self.managed) != data['expected']:
+            raise WorkbenchError('Appearance edited externally; cannot commit.')
+        for name, entry in data.get('files', {}).items():
+            if text_or_none(Path(name)) != entry['expected']:
+                raise WorkbenchError(f'{name} edited externally; cannot commit.')
+        atomic(self.selection, json.dumps(choice, indent=2))
+        self.journal.unlink()
+        self.event('apply.finish', choice=choice)
+
+
+def catalog(store):
+    binary = Path(ghostty())
+    resource = binary.parent.parent / 'Resources/ghostty/themes'
+    if not resource.is_dir():
+        resource = binary.resolve().parent.parent / 'share/ghostty/themes'
+    items = {}
+    for folder in (resource, store.directory / 'themes'):
+        if folder.is_dir():
+            for file in folder.iterdir():
+                if file.is_file() and not file.name.startswith('.'):
+                    items['theme:' + file.name] = dict(id='theme:' + file.name, kind='theme', name=file.name, path=str(file))
+    folder = store.directory / 'retro'
+    if folder.is_dir():
+        for file in folder.iterdir():
+            if file.is_file() and file.name.startswith(('retro-', 'sci-fi-', 'corpo-', 'aesthetic-')):
+                values = dict(pairs(file.read_text()))
+                name = values.get('title', file.name).strip('"')
+                items['retro:' + file.name] = dict(id='retro:' + file.name, kind='retro', name=name, path=str(file),
+                    font=values.get('font-family', '').strip('"'), crt=bool(values.get('custom-shader')))
+    return sorted(items.values(), key=lambda item: (item['kind'] != 'retro', item['name'].casefold()))
+
+
+def fonts(extra=()):
+    def families(output):
+        return [line.strip() for line in output.splitlines() if line and not line[0].isspace()]
+    names = set(families(run([ghostty(), '+list-fonts'])))
+    # The general list omits some usable retro faces (e.g. sparse glyph sets).
+    # Query referenced families explicitly before declaring a fallback.
+    for family in sorted({f for f in extra if f} - names):
+        resolved = families(run([ghostty(), '+list-fonts', '--family=' + family]))
+        if family in resolved:
+            names.add(family)
+    return sorted(names, key=str.casefold)
+
+
+def defaults():
+    return list(pairs(run([ghostty(), '+show-config', '--default', '--no-pager'])))
+
+
+def render(item, font, size, crt, base, shader_path=None):
+    values = [(k, v) for k, v in base if k in APPEARANCE]
+    # Reset repeatable lists so inherited fonts/shaders don't win.
+    lines = ['# Managed by ghostty-workbench; select with ghostty-show.',
+             'font-family = ""', 'font-family-bold = ""', 'font-family-italic = ""',
+             'font-family-bold-italic = ""', 'custom-shader =']
+    values = [(k, v) for k, v in values if k != 'custom-shader']
+    if item:
+        allowed = APPEARANCE if item['kind'] == 'retro' else COLORS
+        selected = [(k, v) for k, v in pairs(Path(item['path']).read_text()) if k in allowed]
+        # Defaults first, chosen values last. Built-in themes are treated as data.
+        values += selected
+        if item['kind'] == 'retro':
+            machine = next((v for k, v in pairs(Path(item['path']).read_text())
+                            if k == 'env' and v.startswith('RETRO_MACHINE=')), 'RETRO_MACHINE=')
+            values.append(('env', machine))
+        else:
+            values.append(('env', 'RETRO_MACHINE='))
+    if font:
+        values = [(k, v) for k, v in values if not k.startswith('font-family')]
+        values.append(('font-family', quote(font)))
+    if size is not None:
+        values.append(('font-size', str(size)))
+    shader = str(shader_path or Store().directory / 'shaders/crt.glsl')
+    if crt != 'auto':
+        values = [(k, v) for k, v in values if k not in ('custom-shader', 'custom-shader-animation')]
+        if crt == 'on':
+            values += [('custom-shader', quote(shader)), ('custom-shader-animation', 'true')]
+    return '\n'.join(lines + [f'{k} = {v}' for k, v in values]) + '\n'
+
+
+def reload_config():
+    if sys.platform != 'darwin':
+        raise WorkbenchError('Automatic reload currently requires macOS.')
+    # Match the picker TTY rather than whichever tab happens to be selected.
+    tty = os.ttyname(sys.stdin.fileno()) if sys.stdin.isatty() else ''
+    script = '''tell application "Ghostty"
+set targetTerminal to missing value
+repeat with t in terminals
+if tty of t is PICKER_TTY then set targetTerminal to contents of t
+end repeat
+if targetTerminal is missing value then set targetTerminal to focused terminal of selected tab of front window
+return perform action "reload_config" on targetTerminal
+end tell'''.replace('PICKER_TTY', quote(tty))
+    if run(['osascript', '-'], input=script).strip() != 'true':
+        raise WorkbenchError('Ghostty did not acknowledge config reload.')
+
+
+def validate_config(store):
+    run([ghostty(), '+validate-config', '--config-file=' + str(store.config)])
+
+
+def draw(screen, lines, selected, status):
+    screen.erase()
+    height, width = screen.getmaxyx()
+    for row, text in enumerate(lines[:max(0, height - 2)]):
+        try:
+            screen.addnstr(row, 0, text, max(0, width - 1), curses.A_BOLD if row == selected else 0)
+        except curses.error:
+            pass
+    try:
+        screen.addnstr(height - 1, 0, status, max(0, width - 1), curses.A_REVERSE)
+    except curses.error:
+        pass
+    screen.refresh()
+
+
+def picker(store, items, font_names, args, base):
+    saved = json.loads(store.selection.read_text()) if store.selection.exists() else {}
+    chosen = next((x for x in items if x['id'] == (args.start or saved.get('id'))), None)
+    mode = args.kind
+    font = saved.get('font')
+    size = saved.get('size')
+    crt = saved.get('crt', 'auto')
+    query = ''
+    tab = 'fonts' if args.fonts else 'looks'
+    initial = font_names if args.fonts else [x['id'] for x in items if mode == 'all' or x['kind'] == mode]
+    active = font if args.fonts else chosen['id'] if chosen else None
+    pos = initial.index(active) if active in initial else 0
+    dirty = False
+    searching = False
+    current = list(pairs(run([ghostty(), '+show-config', '--no-pager'])))
+
+    def content():
+        return render(chosen, font, size, crt, base if chosen else current,
+                      store.directory / 'shaders/crt.glsl')
+
+    def ui(screen):
+        nonlocal chosen, font, size, crt, query, mode, tab, pos, dirty, searching
+        curses.curs_set(0)
+        screen.keypad(True)
+        screen.timeout(120)
+        preview_at = 0.0
+        pending = bool(args.start and chosen)
+        last_frame = None
+        while True:
+            candidates = ([{'name': f} for f in font_names] if tab == 'fonts' else
+                          [x for x in items if mode == 'all' or x['kind'] == mode])
+            candidates = [x for x in candidates if query.casefold() in x['name'].casefold()]
+            pos = min(pos, max(0, len(candidates) - 1))
+            # Debounce held arrows; reload only after navigation settles.
+            if pending and time.monotonic() >= preview_at:
+                store.write_preview(content())
+                validate_config(store)
+                reload_config()
+                last_frame = None
+                screen.clearok(True)
+                store.event('preview.finish', choice=chosen['id'] if chosen else None, font=font, crt=crt,
+                            reload_acknowledged=True, rendering_verified=False)
+                pending = False
+            height, _ = screen.getmaxyx()
+            page = max(2, height - 15)
+            start = max(0, pos - page // 2)
+            visible = candidates[start:start + page]
+            lines = ['Ghostty workbench | previews affect windows using the shared config',
+                     f'Browse: {tab} | filter: {mode} | search: {query}' + (' [typing]' if searching else ''),
+                     f'Look: {chosen["name"] if chosen else "Current appearance"} | font: {font or "profile default"} | size: {size or "profile"} | CRT: {crt}', '']
+            for i, item in enumerate(visible, start):
+                detail = '' if tab == 'fonts' else f' [{item["kind"]}]' + (' CRT' if item.get('crt') else '')
+                if item.get('font') and item['font'] not in font_names:
+                    detail += ' [font unavailable: ' + item['font'] + ']'
+                lines.append(('> ' if i == pos else '  ') + item['name'] + detail)
+            lines += ['', 'Rendered specimen (this IS the selected Ghostty font):',
+                '  The quick brown fox jumps over the lazy dog. 0123456789',
+                '  Il1 O0 {} [] () -> => != === <= >= ffi fl / \\',
+                '  Nerd Font: \ue0b0 \ue0a0 \uf07b \uf120 \uf013   Unicode: ┌─┬─┐ αβγ λ ∑',
+                '  Colors: black red green yellow blue magenta cyan white',
+                '  Enter saves the preview. Esc/q cancels and restores.']
+            frame = (tuple(lines), pos, start, screen.getmaxyx())
+            if frame != last_frame:
+                draw(screen, lines, 4 + pos - start if visible else -1,
+                     '↑↓ preview | Tab fonts/looks | / search | r/t/a filter | c CRT | +/- size | d profile font | ? help')
+                # ANSI styles/color specimen, through the real renderer.
+                if height >= len(lines) + 1:
+                    sys.stdout.write('\x1b[' + str(len(lines) + 1) + ';1H' +
+                        '\x1b[1mBold\x1b[0m  \x1b[3mItalic\x1b[0m  ' +
+                        ''.join(f'\x1b[{30 + n}m██\x1b[0m ' for n in range(8)))
+                    sys.stdout.flush()
+                last_frame = frame
+            key = screen.getch()
+            if key == -1:
+                continue
+            if searching:
+                if key in (10, 13, 27):
+                    searching = False
+                elif key in (curses.KEY_BACKSPACE, 127, 8):
+                    query = query[:-1]
+                    pos = 0
+                elif 32 <= key <= 126:
+                    query += chr(key)
+                    pos = 0
+                continue
+            if key in (27, ord('q')):
+                return None
+            if key in (10, 13):
+                if candidates:
+                    if tab == 'fonts':
+                        font = candidates[pos]['name']
+                    else:
+                        chosen = candidates[pos]
+                elif not dirty:
+                    continue
+                store.write_preview(content())
+                validate_config(store)
+                reload_config()
+                return dict(id=chosen['id'] if chosen else None, font=font, size=size, crt=crt)
+            if key == 9:
+                tab = 'looks' if tab == 'fonts' else 'fonts'
+                query, pos = '', 0
+                continue
+            if key == ord('/'):
+                searching = True
+                query, pos = '', 0
+                continue
+            if key in (ord('r'), ord('t'), ord('a')):
+                mode = {ord('r'): 'retro', ord('t'): 'theme', ord('a'): 'all'}[key]
+                tab, query, pos = 'looks', '', 0
+                continue
+            if key == ord('?'):
+                draw(screen, ['Ghostty workbench', '', 'Arrow keys: highlight AND preview a look or font.',
+                    'Right/l and left/h also navigate. Tab switches fonts / looks.',
+                    '/ enters search; Enter ends search; arrows preview the result.',
+                    'r: retro profiles, t: ordinary themes, a: all looks.',
+                    'c: CRT auto (profile setting) → on → off.',
+                    'd: restore profile font and size; +/-: change font size.',
+                    'Enter saves the PREVIEWED combination. Esc/q restores the original.',
+                    'Preview reloads shared settings, including other windows.',
+                    'Run in a normal Ghostty window; launch-time overrides can win.',
+                    'Ctrl-C restores too. After a crash run: ghostty-workbench recover.'], -1, 'Press any key')
+                screen.timeout(-1)
+                screen.getch()
+                screen.timeout(120)
+                last_frame = None
+                continue
+            if key in (curses.KEY_DOWN, curses.KEY_RIGHT, ord('j'), ord('l'),
+                       curses.KEY_UP, curses.KEY_LEFT, ord('k'), ord('h')):
+                if not candidates:
+                    continue
+                step = -1 if key in (curses.KEY_UP, curses.KEY_LEFT, ord('k'), ord('h')) else 1
+                pos = (pos + step) % len(candidates)
+                if tab == 'fonts':
+                    font = candidates[pos]['name']
+                else:
+                    chosen = candidates[pos]
+            elif key == ord('c'):
+                crt = {'auto': 'on', 'on': 'off', 'off': 'auto'}[crt]
+            elif key in (ord('+'), ord('='), ord('-')):
+                profile_values = dict(pairs(Path(chosen['path']).read_text())) if chosen else {}
+                size = min(40, max(6, float(size or profile_values.get('font-size', 14)) + (-1 if key == ord('-') else 1)))
+            elif key == ord('d'):
+                font, size = None, None
+            else:
+                continue
+            dirty, pending, preview_at = True, True, time.monotonic() + 0.15
+    return curses.wrapper(ui)
+
+
+CRT_DIALS = [
+    ('CURVATURE', 'Curvature (lower = more bulge)', 2, 10, .1),
+    ('SCANLINE', 'Scanlines', 0, .6, .01),
+    ('GRILLE', 'Aperture grille', 0, .3, .01),
+    ('ABERRATION', 'Chromatic aberration', 0, .006, .0005),
+    ('BLOOM', 'Phosphor bloom', 0, .3, .01),
+    ('FLICKER', 'Flicker', 0, .1, .005),
+    ('BRIGHTNESS', 'Brightness', .6, 2, .05),
+    ('BEZEL', 'Bezel inset', 0, .2, .01),
+    ('CORNER', 'Corner radius', 0, .4, .01),
+]
+
+
+def shader_values(source):
+    values = {}
+    for name, _, low, high, _ in CRT_DIALS:
+        matches = re.findall(r'\bconst\s+float\s+' + name + r'\s*=\s*([0-9.]+)\s*;', source)
+        if len(matches) != 1:
+            raise WorkbenchError(f'Shader must define {name} exactly once.')
+        value = float(matches[0])
+        if not low <= value <= high:
+            raise WorkbenchError(f'{name} outside supported range {low}–{high}: {value}')
+        values[name] = value
+    return values
+
+
+def shader_with_values(source, values):
+    for name, value in values.items():
+        source = re.sub(r'(\bconst\s+float\s+' + name + r'\s*=\s*)[0-9.]+(\s*;)',
+                        lambda m: m[1] + f'{value:.4f}' + m[2], source)
+    shader_values(source)
+    return source
+
+
+def crt_config(original, shader):
+    # Override only shader settings; retain all other appearance lines verbatim.
+    kept = [line for line in (original or '').splitlines()
+            if not re.match(r'^\s*custom-shader(?:-animation)?\s*=', line)]
+    return '\n'.join(kept).rstrip('\n') + '\ncustom-shader =\ncustom-shader = ' + quote(shader) + '\ncustom-shader-animation = true\n'
+
+
+def tune_crt(store, args):
+    shader = store.directory / 'shaders/crt.glsl'
+    if not args.dry_run and (not sys.stdin.isatty() or os.environ.get('SSH_CONNECTION') or
+        not (os.environ.get('TERM_PROGRAM') == 'ghostty' or os.environ.get('GHOSTTY_RESOURCES_DIR'))):
+        raise WorkbenchError('Run ghostty-crt in a local Ghostty terminal (not over SSH).')
+    if not args.dry_run and store.restore():
+        reload_config()
+    source = text_or_none(shader)
+    source_path = shader if source is not None else ROOT / 'shaders/crt.glsl'
+    source = source if source is not None else source_path.read_text()
+    values = shader_values(source)
+    manifest = dict(source=str(source_path), target=str(shader), values=values,
+        strategy='shared shader plus shader-only appearance override',
+        expected='live CRT tuning with existing palette and font; Enter saves, Escape restores',
+        scope='windows using shared config/shader; explicit launch overrides may win',
+        confidence='constants checked; visual rendering requires live Ghostty',
+        predicted_failures=['not a local Ghostty TTY', 'reload unavailable', 'external file edits'])
+    if args.dry_run:
+        print(json.dumps(manifest, indent=2))
+        return 0
+    store.event('crt.start', manifest=manifest)
+    store.install()
+    original = text_or_none(store.managed)
+    store.begin(files=[shader])
+
+    def preview():
+        store.write_resource(shader, shader_with_values(source, values))
+        store.write_preview(crt_config(original, shader))
+        validate_config(store)
+        reload_config()
+        store.event('crt.preview.finish', values=values, reload_acknowledged=True, rendering_verified=False)
+
+    def ui(screen):
+        curses.curs_set(0)
+        screen.keypad(True)
+        screen.timeout(100)
+        pos, pending = 0, False
+        due = 0.0
+        while True:
+            if pending and time.monotonic() >= due:
+                preview()
+                pending = False
+                screen.clearok(True)
+            lines = ['Ghostty CRT settings — shared across sessions',
+                     'Up/down selects; left/right or +/- adjusts.',
+                     'Enter saves | Esc/q restores | d resets all dials', '']
+            for name, label, low, high, _ in CRT_DIALS:
+                lines.append(f'  {label:34} {values[name]:.4f}  [{low:g}–{high:g}]')
+            lines += ['', 'The quick brown fox jumps over the lazy dog. 0123456789',
+                      'Il1 O0 {} [] () -> => != ===  Bright text / phosphor glow',
+                      '┌──────────────────────────────────────────────────────┐',
+                      '│ Your current font and palette, through the CRT shader │',
+                      '└──────────────────────────────────────────────────────┘']
+            draw(screen, lines, pos + 4, 'Changes preview live in sessions using the shared configuration')
+            key = screen.getch()
+            if key in (27, ord('q')):
+                return False
+            if key in (10, 13):
+                if pending:
+                    preview()
+                return True
+            if key in (curses.KEY_DOWN, ord('j'), curses.KEY_UP, ord('k')):
+                pos = (pos + (1 if key in (curses.KEY_DOWN, ord('j')) else -1)) % len(CRT_DIALS)
+            elif key == ord('d'):
+                values.update(shader_values((ROOT / 'shaders/crt.glsl').read_text()))
+                pending, due = True, time.monotonic() + .15
+            elif key in (curses.KEY_LEFT, curses.KEY_RIGHT, ord('h'), ord('l'), ord('+'), ord('='), ord('-')):
+                name, _, low, high, step = CRT_DIALS[pos]
+                direction = -1 if key in (curses.KEY_LEFT, ord('h'), ord('-')) else 1
+                values[name] = round(min(high, max(low, values[name] + direction * step)), 4)
+                pending, due = True, time.monotonic() + .15
+    try:
+        preview()
+        if curses.wrapper(ui):
+            choice = json.loads(store.selection.read_text()) if store.selection.exists() else {}
+            choice.update(crt='on', crt_values=values)
+            store.commit(choice)
+            store.event('crt.finish', values=values, rendering_verified=False)
+            print('Saved shared CRT settings.')
+        else:
+            print('Cancelled; restored previous CRT settings.')
+    finally:
+        if store.restore():
+            reload_config()
+    return 0
+
+
+def tmux_discover(args):
+    if not args.host or args.host.startswith('-') or any(c.isspace() or ord(c) < 32 for c in args.host):
+        raise WorkbenchError('Use an SSH host/alias without whitespace; put extra options in ~/.ssh/config.')
+    ssh = ['ssh', '-o', 'ConnectTimeout=10']
+    if args.port:
+        ssh += ['-p', str(args.port)]
+    if args.identity:
+        ssh += ['-i', str(Path(args.identity).expanduser())]
+    tmux = ['tmux'] + (['-L', args.socket] if args.socket else [])
+    command = shlex.join(tmux + ['list-sessions', '-F', '#{session_id}\t#{session_windows}\t#{session_attached}\t#{session_name}'])
+    p = subprocess.run(ssh + ['-T', args.host, command], capture_output=True, text=True, timeout=30)
+    if p.returncode:
+        if p.returncode == 1 and re.search(r'no server running|no sessions|error connecting to .*No such file', p.stderr):
+            return []
+        raise WorkbenchError(f'SSH/tmux discovery failed ({p.returncode}): {p.stderr.strip()}')
+    sessions = []
+    for line in p.stdout.splitlines():
+        fields = line.split('\t', 3)
+        if len(fields) != 4 or not re.fullmatch(r'\$\d+', fields[0]) or not all(x.isdigit() for x in fields[1:3]):
+            raise WorkbenchError(f'Unexpected tmux discovery output: {line!r}')
+        sid, windows, attached, name = fields
+        # SSH forwards TERM, but remote hosts may not have Ghostty's terminfo.
+        attach = ('if ! infocmp "$TERM" >/dev/null 2>&1; then '
+                  'export TERM=xterm-256color; '
+                  'printf "%s\\n" "ghostty-tmux: remote terminfo unavailable; using $TERM" >&2; '
+                  'fi; exec ' + shlex.join(tmux + ['attach-session', '-t', sid]))
+        sessions.append(dict(id=sid, name=name, windows=int(windows), attached=int(attached),
+            command=shlex.join(ssh + ['-tt', args.host, attach]),
+            strategy='attach-existing-session', expected='one native Ghostty tab'))
+    if args.session:
+        missing = set(args.session) - {s[k] for s in sessions for k in ('id', 'name')}
+        if missing:
+            raise WorkbenchError(f'Sessions not found: {sorted(missing)}')
+        sessions = [s for s in sessions if s['id'] in args.session or s['name'] in args.session]
+    return sessions
+
+
+def tmux_script(sessions):
+    lines = ['tell application "Ghostty"', 'activate']
+    for i, session in enumerate(sessions):
+        lines += ['set cfg to new surface configuration',
+                  'set command of cfg to ' + quote(session['command']), 'set wait after command of cfg to true']
+        if i == 0:
+            lines += ['set win to new window with configuration cfg', 'set newTab to selected tab of win']
+        else:
+            lines += ['set newTab to new tab in win with configuration cfg']
+        lines += ['set name override of newTab to ' + quote(session['name'])]
+    lines += ['return count of tabs of win', 'end tell']
+    return '\n'.join(lines)
+
+
+def install_commands():
+    folder = Path.home() / '.local/bin'
+    folder.mkdir(parents=True, exist_ok=True)
+    source = Path(__file__).resolve()
+    for name in ('ghostty-workbench', 'ghostty-show', 'ghostty-fonts', 'ghostty-roll', 'ghostty-tmux', 'ghostty-crt'):
+        target = folder / name
+        if target.is_symlink() and target.resolve() == source:
+            continue
+        if target.exists() or target.is_symlink():
+            raise WorkbenchError(f'Will not replace existing command: {target}')
+        target.symlink_to(source)
+
+
+def main(argv=None):
+    aliases = {'ghostty-show': ['show'], 'ghostty-fonts': ['show', '--fonts'],
+               'ghostty-roll': ['random'], 'ghostty-tmux': ['tmux'], 'ghostty-crt': ['crt']}
+    argv = aliases.get(Path(sys.argv[0]).name, []) + (sys.argv[1:] if argv is None else argv)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--config-dir', type=Path, help='Override Ghostty config directory')
+    sub = parser.add_subparsers(dest='action', required=True)
+    sub.add_parser('install', help='Back up config, wire final appearance include, install commands')
+    sub.add_parser('doctor', help='Inspect inputs and print JSON manifest without mutation')
+    sub.add_parser('recover', help='Restore an interrupted preview')
+    crt_parser = sub.add_parser('crt', help='Tune shared CRT effects live; Enter saves, Esc restores')
+    crt_parser.add_argument('--dry-run', action='store_true', help='Print input manifest without changes')
+    show = sub.add_parser('show', help='Rendered theme/profile/font picker; Enter saves, Esc restores')
+    show.add_argument('--kind', choices=['all', 'retro', 'theme'], default='all')
+    show.add_argument('--fonts', action='store_true')
+    show.add_argument('--start', help='Catalog ID to start from (see doctor)')
+    for action in ('apply', 'random'):
+        p = sub.add_parser(action)
+        if action == 'apply':
+            p.add_argument('look', help='Exact catalog ID or unique name')
+        else:
+            p.add_argument('--kind', choices=['all', 'retro', 'theme'], default='retro')
+            p.add_argument('--match', default='', help='Name contains this text')
+        p.add_argument('--font', help='Installed font family override')
+        p.add_argument('--size', type=float)
+        p.add_argument('--crt', choices=['auto', 'on', 'off'], default='auto')
+        p.add_argument('--dry-run', action='store_true')
+    remote = sub.add_parser('tmux', help='Discover remote tmux sessions; open one Ghostty tab per session')
+    remote.add_argument('host')
+    remote.add_argument('-p', '--port', type=int)
+    remote.add_argument('-i', '--identity')
+    remote.add_argument('--socket')
+    remote.add_argument('--session', action='append')
+    remote.add_argument('--dry-run', action='store_true', help='Discover and print manifest; open nothing')
+    args = parser.parse_args(argv)
+    store = Store(args.config_dir)
+    try:
+        if args.action == 'doctor':
+            items = catalog(store)
+            available = fonts(x.get('font', '') for x in items)
+            for item in items:
+                if item.get('font'):
+                    item['font_available'] = item['font'] in available
+            print(json.dumps(dict(ghostty=ghostty(), config=str(store.config),
+                installed=BEGIN in (text_or_none(store.config) or ''),
+                interrupted_preview=store.journal.exists(), fonts=available,
+                looks=items, preview_scope='shared config; explicit launch overrides may win',
+                expected='rendered preview and atomic appearance persistence',
+                confidence='catalog verified; visual rendering requires live Ghostty'), indent=2))
+            return 0
+        if args.action == 'tmux':
+            if args.port is not None and not 1 <= args.port <= 65535:
+                raise WorkbenchError('Port must be between 1 and 65535.')
+            store.event('discover.start', manifest=dict(host=args.host,
+                strategy='SSH query, validate session IDs, attach existing sessions',
+                expected='one native tab per session; no new tmux sessions',
+                predicted_failures=['SSH authentication/connectivity', 'missing tmux or sessions', 'shell startup noise']))
+            sessions = tmux_discover(args)
+            manifest = dict(host=args.host, sessions=sessions, attachment_verified=False)
+            store.event('discover.finish', manifest=manifest)
+            print(json.dumps(manifest, indent=2), flush=True)
+            if args.dry_run or not sessions:
+                return 0
+            store.event('launch.start', expected=len(sessions))
+            try:
+                count = run(['osascript', '-'], input=tmux_script(sessions), timeout=60).strip()
+            except (WorkbenchError, subprocess.TimeoutExpired) as exc:
+                raise WorkbenchError(f'Ghostty launch failed; some tabs may already be open. {exc}') from exc
+            if count != str(len(sessions)):
+                raise WorkbenchError(f'Expected {len(sessions)} tabs; Ghostty reported {count!r}.')
+            store.event('launch.finish', tabs=int(count), attachment_verified=False)
+            print(f'Opened {count} tabs. SSH/attachment results appear in each tab.')
+            return 0
+        with (contextlib.nullcontext() if getattr(args, 'dry_run', False) else store.lock()):
+            if args.action == 'recover':
+                if store.restore():
+                    reload_config()
+                    print('Restored the appearance from before the interrupted preview.')
+                else:
+                    print('No interrupted preview.')
+                return 0
+            if args.action == 'install':
+                store.install()
+                install_commands()
+                print(f'Installed commands in ~/.local/bin; backed up and wired {store.config}.')
+                return 0
+            if args.action == 'crt':
+                return tune_crt(store, args)
+            items = catalog(store)
+            available = fonts([x.get('font', '') for x in items] + [getattr(args, 'font', None)])
+            base = defaults()
+            if args.action == 'show':
+                local_ghostty = os.environ.get('TERM_PROGRAM') == 'ghostty' or bool(os.environ.get('GHOSTTY_RESOURCES_DIR'))
+                if not sys.stdin.isatty() or not local_ghostty or os.environ.get('SSH_CONNECTION'):
+                    raise WorkbenchError('Run ghostty-show in a local Ghostty terminal (not over SSH).')
+                if not items:
+                    raise WorkbenchError('No themes/profiles found.')
+                store.install()
+                if store.restore():
+                    reload_config()
+                store.begin()
+                try:
+                    choice = picker(store, items, available, args, base)
+                    if choice:
+                        store.commit(choice)
+                        print('Saved: ' + json.dumps(choice))
+                    else:
+                        print('Cancelled; restoring previous appearance.')
+                finally:
+                    if store.restore():
+                        reload_config()
+                return 0
+            if args.font and args.font not in available:
+                raise WorkbenchError(f'Font is not installed: {args.font}')
+            if args.size is not None and not 6 <= args.size <= 72:
+                raise WorkbenchError('Font size must be between 6 and 72.')
+            if args.action == 'apply':
+                matches = [x for x in items if args.look in (x['id'], x['name'])]
+                if len(matches) != 1:
+                    raise WorkbenchError('Look is missing or ambiguous; use an exact ID from doctor.')
+                item = matches[0]
+            else:
+                pool = [x for x in items if (args.kind == 'all' or x['kind'] == args.kind) and args.match.casefold() in x['name'].casefold()]
+                saved = json.loads(store.selection.read_text()) if store.selection.exists() else {}
+                if len(pool) > 1:
+                    pool = [x for x in pool if x['id'] != saved.get('id')]
+                if not pool:
+                    raise WorkbenchError('No matching looks.')
+                item = random.choice(pool)
+            choice = dict(id=item['id'], font=args.font, size=args.size, crt=args.crt)
+            content = render(item, args.font, args.size, args.crt, base,
+                             store.directory / 'shaders/crt.glsl')
+            print(json.dumps(dict(choice=choice, strategy='final appearance override',
+                expected='palette + font + CRT according to selection', config=content), indent=2), flush=True)
+            if args.dry_run:
+                return 0
+            store.install()
+            if store.restore():
+                reload_config()
+            store.begin()
+            try:
+                store.write_preview(content)
+                validate_config(store)
+                reload_config()
+                store.commit(choice)
+            finally:
+                if store.restore():
+                    reload_config()
+        return 0
+    except (WorkbenchError, OSError, ValueError, subprocess.TimeoutExpired, curses.error) as exc:
+        with contextlib.suppress(OSError):
+            store.event('operation.failed', action=args.action, classification=type(exc).__name__, reason=str(exc))
+        print(f'ghostty-workbench: {exc}', file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print('ghostty-workbench: interrupted; preview restored if possible.', file=sys.stderr)
+        return 130
+
+
+if __name__ == '__main__':
+    # Let finally blocks restore previews on shell/window termination too.
+    signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
+    signal.signal(signal.SIGHUP, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
+    raise SystemExit(main())
